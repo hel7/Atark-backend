@@ -5,15 +5,34 @@ import (
 	"github.com/hel7/Atark-backend/pkg/handlers"
 	"github.com/hel7/Atark-backend/pkg/repository"
 	"github.com/hel7/Atark-backend/pkg/service"
+	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
 	"log"
+	"os"
 )
 
 func main() {
 	if err := initConfig(); err != nil {
 		log.Fatalf("error initializing configs: %s", err.Error())
 	}
-	repos := repository.NewRepository()
+
+	if err := godotenv.Load(); err != nil {
+		log.Fatalf("Error loading env variables: %s", err.Error())
+	}
+
+	db, err := repository.NewMysqlDb(repository.Config{
+		Host:     viper.GetString("db.host"),
+		Port:     viper.GetString("db.port"),
+		Username: viper.GetString("db.username"),
+		Password: os.Getenv("DB_PASSWORD"),
+		Dbname:   viper.GetString("db.dbname"),
+	})
+
+	if err != nil {
+		log.Fatalf("Failed to initialize db %s", err.Error())
+	}
+
+	repos := repository.NewRepository(db)
 	services := service.NewService(repos)
 	handlers := handlers.NewHandler(services)
 
