@@ -6,18 +6,19 @@ import (
 	"github.com/hel7/Atark-backend/pkg/repository"
 	"github.com/hel7/Atark-backend/pkg/service"
 	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"log"
 	"os"
 )
 
 func main() {
+	logrus.SetFormatter(new(logrus.JSONFormatter))
 	if err := initConfig(); err != nil {
-		log.Fatalf("error initializing configs: %s", err.Error())
+		logrus.Fatalf("error initializing configs: %s", err.Error())
 	}
 
 	if err := godotenv.Load(); err != nil {
-		log.Fatalf("Error loading env variables: %s", err.Error())
+		logrus.Fatalf("Error loading env variables: %s", err.Error())
 	}
 
 	db, err := repository.NewMysqlDb(repository.Config{
@@ -29,7 +30,7 @@ func main() {
 	})
 
 	if err != nil {
-		log.Fatalf("Failed to initialize db %s", err.Error())
+		logrus.Fatalf("Failed to initialize db %s", err.Error())
 	}
 
 	repos := repository.NewRepository(db)
@@ -37,10 +38,10 @@ func main() {
 	handlers := handlers.NewHandler(services)
 
 	srv := new(farmsage.Server)
-	log.Printf("Starting the server on port %s", viper.GetString("server.port"))
+	logrus.Printf("Starting the server on port %s", viper.GetString("server.port"))
 
-	if err := srv.Run(viper.GetString("8000"), handlers.InitRoutes()); err != nil {
-		log.Fatalf("error running server: %s", err.Error())
+	if err := srv.Run(viper.GetString("server.port"), handlers.InitRoutes()); err != nil {
+		logrus.Fatalf("error running server: %s", err.Error())
 	}
 
 }

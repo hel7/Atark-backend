@@ -1,8 +1,12 @@
 package repository
 
-import "github.com/jmoiron/sqlx"
+import (
+	farmsage "github.com/hel7/Atark-backend"
+	"github.com/jmoiron/sqlx"
+)
 
 type Authorization interface {
+	CreateUser(user farmsage.User) (int, error)
 }
 
 type Animals interface {
@@ -34,5 +38,8 @@ type Repository struct {
 }
 
 func NewRepository(db *sqlx.DB) *Repository {
-	return &Repository{}
+
+	return &Repository{
+		Authorization: NewAuthMysql(db),
+	}
 }

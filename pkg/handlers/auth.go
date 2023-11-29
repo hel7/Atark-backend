@@ -1,15 +1,28 @@
 package handlers
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
+	farmsage "github.com/hel7/Atark-backend"
+	"net/http"
 )
 
-func (h *Handlers) signUp(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "User signed up successfully"})
+func (h *Handlers) Register(c *gin.Context) {
+	var input farmsage.User
+
+	if err := c.BindJSON(&input); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+	id, err := h.services.Authorization.CreateUser(input)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+	c.JSON(http.StatusOK, map[string]interface{}{
+		"id": id,
+	})
 }
 
-func (h *Handlers) signIn(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "User signed in successfully"})
+func (h *Handlers) Login(c *gin.Context) {
+
 }

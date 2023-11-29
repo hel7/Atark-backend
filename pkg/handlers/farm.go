@@ -2,14 +2,6 @@ package handlers
 
 import "github.com/gin-gonic/gin"
 
-func (h *Handlers) Register(c *gin.Context) {
-	// Логика регистрации нового пользователя
-}
-
-func (h *Handlers) Login(c *gin.Context) {
-	// Логика аутентификации пользователя
-}
-
 func (h *Handlers) GetAnimals(c *gin.Context) {
 	// Получение списка всех животных
 }
