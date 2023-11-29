@@ -2,9 +2,16 @@ package handlers
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/hel7/Atark-backend/pkg/service"
 )
 
-type Handlers struct{}
+type Handlers struct {
+	services *service.Service
+}
+
+func NewHandler(services *service.Service) *Handlers {
+	return &Handlers{services: services}
+}
 
 func (h *Handlers) InitRoutes() *gin.Engine {
 	router := gin.Default()
