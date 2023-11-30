@@ -1,7 +1,7 @@
 package service
 
 import (
-	"crypto/sha1"
+	"crypto/sha256"
 	"fmt"
 	farmsage "github.com/hel7/Atark-backend"
 	"github.com/hel7/Atark-backend/pkg/repository"
@@ -23,8 +23,8 @@ func (s *AuthService) CreateUser(user farmsage.User) (int, error) {
 }
 
 func generatePasswordHash(password string) string {
-	hash := sha1.New()
-	hash.Write([]byte(password))
-
-	return fmt.Sprint("%x", hash.Sum([]byte(salt)))
+	hash := sha256.New()
+	hash.Write([]byte(password + salt))
+	hashed := hash.Sum(nil)
+	return fmt.Sprintf("%x", hashed)
 }

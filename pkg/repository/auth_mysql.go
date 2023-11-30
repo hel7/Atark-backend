@@ -15,9 +15,9 @@ func NewAuthMysql(db *sqlx.DB) *AuthMysql {
 }
 
 func (r *AuthMysql) CreateUser(user farmsage.User) (int, error) {
-	query := fmt.Sprintf("INSERT INTO%s (email, username, password_hash) VALUES (?, ?, ?)", usersTable)
+	query := fmt.Sprintf("INSERT INTO %s (username, email, password) VALUES (?, ?, ?)", usersTable)
 
-	result, err := r.db.Exec(query, user.Email, user.Username, user.Password)
+	result, err := r.db.Exec(query, user.Username, user.Email, user.Password)
 	if err != nil {
 		return 0, err
 	}

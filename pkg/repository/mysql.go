@@ -7,13 +7,13 @@ import (
 )
 
 const (
-	usersTable       = "users"
-	animalsTable     = "animals"
-	activitiesTable  = "activities"
-	feedingSchedules = "feeding_schedules"
-	feedsTable       = "feeds"
-	biometricsTable  = "biometrics"
-	farmsTable       = "farms"
+	usersTable       = "User"
+	animalsTable     = "Animal"
+	activitiesTable  = "Activity"
+	feedingSchedules = "Feeding_schedules"
+	feedsTable       = "Feed"
+	biometricsTable  = "Biometrics"
+	farmsTable       = "Farm"
 )
 
 type Config struct {
