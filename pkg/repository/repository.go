@@ -7,6 +7,7 @@ import (
 
 type Authorization interface {
 	CreateUser(user farmsage.User) (int, error)
+	GetUser(username, password string) (farmsage.User, error)
 }
 
 type Animals interface {

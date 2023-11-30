@@ -29,3 +29,10 @@ func (r *AuthMysql) CreateUser(user farmsage.User) (int, error) {
 
 	return int(id), nil
 }
+
+func (r *AuthMysql) GetUser(username, password string) (farmsage.User, error) {
+	var user farmsage.User
+	query := fmt.Sprintf("SELECT UserID FROM %s WHERE username=? and password=?", usersTable)
+	err := r.db.Get(&user, query, username, password)
+	return user, err
+}
