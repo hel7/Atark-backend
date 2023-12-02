@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func (h *Handlers) Register(c *gin.Context) {
+func (h *Handlers) registerUser(c *gin.Context) {
 	var input farmsage.User
 
 	if err := c.BindJSON(&input); err != nil {
@@ -28,7 +28,7 @@ type registrationInput struct {
 	Password string `json:"password" binding:"required"`
 }
 
-func (h *Handlers) Login(c *gin.Context) {
+func (h *Handlers) loginUser(c *gin.Context) {
 	var input registrationInput
 
 	if err := c.BindJSON(&input); err != nil {

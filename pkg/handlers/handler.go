@@ -18,79 +18,62 @@ func (h *Handlers) InitRoutes() *gin.Engine {
 
 	auth := router.Group("/auth")
 	{
-		auth.POST("/register", h.Register)
-		auth.POST("/login", h.Login)
+		auth.POST("/register", h.registerUser)
+		auth.POST("/login", h.loginUser)
 	}
 
-	animals := router.Group("/animals")
+	api := router.Group("/api", h.userIndetity)
 	{
-		animals.GET("/", h.GetAnimals)
-		animals.POST("/", h.CreateAnimal)
-		animals.GET("/:id", h.GetAnimalByID)
-		animals.PUT("/:id", h.UpdateAnimal)
-		animals.DELETE("/:id", h.DeleteAnimal)
-	}
 
-	farms := router.Group("/farms")
-	{
-		farms.GET("/", h.GetFarms)
-		farms.POST("/", h.CreateFarm)
-		farms.GET("/:id", h.GetFarmByID)
-		farms.PUT("/:id", h.UpdateFarm)
-		farms.DELETE("/:id", h.DeleteFarm)
-	}
+		api.GET("/farms", h.getUserFarms)
+		api.GET("/farms/:farmID", h.getFarmByID)
+		api.POST("/farms", h.createFarm)
+		api.PUT("/farms/:farmID", h.updateFarm)
+		api.DELETE("/farms/:farmID", h.deleteFarm)
 
-	feed := router.Group("/feed")
-	{
-		feed.GET("/", h.GetFeed)
-		feed.POST("/", h.CreateFeed)
-		feed.GET("/:id", h.GetFeedByID)
-		feed.PUT("/:id", h.UpdateFeed)
-		feed.DELETE("/:id", h.DeleteFeed)
-	}
-
-	feedingSchedule := router.Group("/feeding-schedule")
-	{
-		feedingSchedule.GET("/", h.GetFeedingSchedule)
-		feedingSchedule.POST("/", h.CreateFeedingSchedule)
-		feedingSchedule.GET("/:id", h.GetFeedingScheduleByID)
-		feedingSchedule.PUT("/:id", h.UpdateFeedingSchedule)
-		feedingSchedule.DELETE("/:id", h.DeleteFeedingSchedule)
-	}
-
-	analytics := router.Group("/analytics")
-	{
-		analytics.GET("/", h.GetAnalytics)
-		analytics.GET("/:date", h.GetAnalyticsByDate)
-	}
-
-	admin := router.Group("/admin")
-	{
-		adminUsers := admin.Group("/users")
+		farms := api.Group("/farms/:farmID")
 		{
-			adminUsers.GET("/", h.GetUsers)
-			adminUsers.POST("/", h.CreateUser)
-			adminUsers.GET("/:id", h.GetUserByID)
-			adminUsers.PUT("/:id", h.UpdateUser)
-			adminUsers.DELETE("/:id", h.DeleteUser)
+			farms.GET("/animals", h.getAnimalsOnFarm)
+			farms.POST("/animals", h.addAnimalToFarm)
+			farms.GET("/animals/:animalID", h.getAnimalByID)
+			farms.DELETE("/animals/:animalID", h.removeAnimalFromFarm)
+
+			farms.GET("/feeds", h.getFeedsOnFarm)
+			farms.POST("/feeds", h.addFeedToFarm)
+			farms.DELETE("/feeds/:feedID", h.removeFeedFromFarm)
+
+			farms.POST("/animals/:animalID/feeds/:feedID/schedule", h.addFeedToAnimalSchedule)
+			farms.DELETE("/animals/:animalID/feeds/:feedID/schedule", h.deleteFeedingSchedule)
+			farms.PUT("/animals/:animalID/feeds/:feedID/schedule", h.updateFeedInAnimalSchedule)
+			farms.GET("/animals/:animalID/feeds/:feedID/schedule", h.getAnimalFeedSchedule)
 		}
 
-		adminRoles := admin.Group("/roles")
+		analytics := api.Group("/analytics")
 		{
-			adminRoles.GET("/", h.GetRoles)
-			adminRoles.POST("/", h.CreateRole)
-			adminRoles.GET("/:id", h.GetRoleByID)
-			adminRoles.PUT("/:id", h.UpdateRole)
-			adminRoles.DELETE("/:id", h.DeleteRole)
-		}
-		adminData := admin.Group("/data")
-		{
-			adminData.POST("/backup", h.CreateBackup)
-			adminData.POST("/restore", h.RestoreBackup)
-			adminData.GET("/export", h.ExportData)
-			adminData.POST("/import", h.ImportData)
+			analytics.GET("/", h.getAnalytics)
+			analytics.GET("/:date", h.getAnalyticsByDate)
 		}
 
+		admin := api.Group("/admin")
+		{
+			users := api.Group("/users")
+			{
+				users.GET("/", h.getUsers)
+				users.POST("/", h.createUser)
+				users.GET("/:id", h.getUserByID)
+				users.PUT("/:id", h.updateUser)
+				users.DELETE("/:id", h.deleteUser)
+			}
+
+			data := admin.Group("/data")
+			{
+				data.POST("/backup", h.backupData)
+				data.POST("/restore", h.restoreData)
+				data.GET("/export", h.exportData)
+				data.POST("/import", h.importData)
+			}
+		}
 	}
+
 	return router
 }

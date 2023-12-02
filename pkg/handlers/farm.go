@@ -1,147 +1,146 @@
 package handlers
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+	"net/http"
+)
 
-func (h *Handlers) GetAnimals(c *gin.Context) {
-	// Получение списка всех животных
+func (h *Handlers) getUserFarms(c *gin.Context) {
+
 }
 
-func (h *Handlers) CreateAnimal(c *gin.Context) {
-	// Создание нового животного
+func (h *Handlers) getFarmByID(c *gin.Context) {
+
 }
 
-func (h *Handlers) GetAnimalByID(c *gin.Context) {
-	// Получение информации о животном по его ID
+func (h *Handlers) createFarm(c *gin.Context) {
+	id, _ := c.Get(userCtx)
+	c.JSON(http.StatusOK, map[string]interface{}{
+		"id": id,
+	})
 }
 
-func (h *Handlers) UpdateAnimal(c *gin.Context) {
-	// Обновление информации о животном по его ID
+func (h *Handlers) updateFarm(c *gin.Context) {
+
 }
 
-func (h *Handlers) DeleteAnimal(c *gin.Context) {
-	// Удаление животного по его ID
+func (h *Handlers) deleteFarm(c *gin.Context) {
+
 }
 
-func (h *Handlers) GetFarms(c *gin.Context) {
-	// Получение списка всех ферм
+func (h *Handlers) getAnimalsOnFarm(c *gin.Context) {
+
+}
+func (h *Handlers) getAnimalByID(c *gin.Context) {
+
+}
+func (h *Handlers) addAnimalToFarm(c *gin.Context) {
+
 }
 
-func (h *Handlers) CreateFarm(c *gin.Context) {
-	// Создание новой фермы
+func (h *Handlers) removeAnimalFromFarm(c *gin.Context) {
+
 }
 
-func (h *Handlers) GetFarmByID(c *gin.Context) {
-	// Получение информации о ферме по ее ID
+func (h *Handlers) getFeedingScheduleByFarm(c *gin.Context) {
+
 }
 
-func (h *Handlers) UpdateFarm(c *gin.Context) {
-	// Обновление информации о ферме по ее ID
+func (h *Handlers) createFeedingSchedule(c *gin.Context) {
+
 }
 
-func (h *Handlers) DeleteFarm(c *gin.Context) {
-	// Удаление фермы по ее ID
+func (h *Handlers) updateFeedingSchedule(c *gin.Context) {
+
 }
 
-func (h *Handlers) GetFeed(c *gin.Context) {
-	// Получение списка всех кормов
+func (h *Handlers) deleteFeedingSchedule(c *gin.Context) {
+
 }
 
-func (h *Handlers) CreateFeed(c *gin.Context) {
-	// Создание нового корма
+func (h *Handlers) getFeedsOnFarm(c *gin.Context) {
+
 }
 
-func (h *Handlers) GetFeedByID(c *gin.Context) {
-	// Получение информации о корме по его ID
+func (h *Handlers) addFeedToFarm(c *gin.Context) {
+
 }
 
-func (h *Handlers) UpdateFeed(c *gin.Context) {
-	// Обновление информации о корме по его ID
+func (h *Handlers) removeFeedFromFarm(c *gin.Context) {
+
+}
+func (h *Handlers) addFeedToAnimalSchedule(c *gin.Context) {
+
+}
+func (h *Handlers) removeFeedFromAnimalSchedule(c *gin.Context) {
+
+}
+func (h *Handlers) updateFeedInAnimalSchedule(c *gin.Context) {
+
+}
+func (h *Handlers) getAnimalFeedSchedule(c *gin.Context) {
+
+}
+func (h *Handlers) getAnalytics(c *gin.Context) {
+
 }
 
-func (h *Handlers) DeleteFeed(c *gin.Context) {
-	// Удаление корма по его ID
+func (h *Handlers) getAnalyticsByDate(c *gin.Context) {
+
 }
 
-func (h *Handlers) GetFeedingSchedule(c *gin.Context) {
-	// Получение списка всех расписаний кормления
+func (h *Handlers) getAdminUsers(c *gin.Context) {
+
 }
 
-func (h *Handlers) CreateFeedingSchedule(c *gin.Context) {
-	// Создание нового расписания кормления
+func (h *Handlers) createAdminUser(c *gin.Context) {
+
 }
 
-func (h *Handlers) GetFeedingScheduleByID(c *gin.Context) {
-	// Получение информации о расписании кормления по его ID
+func (h *Handlers) getAdminUserByID(c *gin.Context) {
+
 }
 
-func (h *Handlers) UpdateFeedingSchedule(c *gin.Context) {
-	// Обновление информации о расписании кормления по его ID
+func (h *Handlers) updateAdminUser(c *gin.Context) {
+
 }
 
-func (h *Handlers) DeleteFeedingSchedule(c *gin.Context) {
-	// Удаление расписания кормления по его ID
+func (h *Handlers) deleteAdminUser(c *gin.Context) {
+
 }
 
-func (h *Handlers) GetAnalytics(c *gin.Context) {
-	// Получение аналитических данных
+func (h *Handlers) getUsers(c *gin.Context) {
+
 }
 
-func (h *Handlers) GetAnalyticsByDate(c *gin.Context) {
-	// Получение аналитических данных по указанной дате
+func (h *Handlers) createUser(c *gin.Context) {
+
 }
 
-func (h *Handlers) GetUsers(c *gin.Context) {
-	// Получение списка всех пользователей
+func (h *Handlers) getUserByID(c *gin.Context) {
+
 }
 
-func (h *Handlers) CreateUser(c *gin.Context) {
-	// Создание нового пользователя
+func (h *Handlers) updateUser(c *gin.Context) {
+
 }
 
-func (h *Handlers) GetUserByID(c *gin.Context) {
-	// Получение информации о пользователе по его ID
+func (h *Handlers) deleteUser(c *gin.Context) {
+
 }
 
-func (h *Handlers) UpdateUser(c *gin.Context) {
-	// Обновление информации о пользователе по его ID
+func (h *Handlers) backupData(c *gin.Context) {
+
 }
 
-func (h *Handlers) DeleteUser(c *gin.Context) {
-	// Удаление пользователя по его ID
+func (h *Handlers) restoreData(c *gin.Context) {
+
 }
 
-func (h *Handlers) GetRoles(c *gin.Context) {
-	// Получение списка всех ролей
+func (h *Handlers) exportData(c *gin.Context) {
+
 }
 
-func (h *Handlers) CreateRole(c *gin.Context) {
-	// Создание новой роли
-}
+func (h *Handlers) importData(c *gin.Context) {
 
-func (h *Handlers) GetRoleByID(c *gin.Context) {
-	// Получение информации о роли по ее ID
-}
-
-func (h *Handlers) UpdateRole(c *gin.Context) {
-	// Обновление информации о роли по ее ID
-}
-
-func (h *Handlers) DeleteRole(c *gin.Context) {
-	// Удаление роли по ее ID
-}
-
-func (h *Handlers) CreateBackup(c *gin.Context) {
-	// Создание резервной копии данных
-}
-
-func (h *Handlers) RestoreBackup(c *gin.Context) {
-	// Восстановление данных из резервной копии
-}
-
-func (h *Handlers) ExportData(c *gin.Context) {
-	// Экспорт данных
-}
-
-func (h *Handlers) ImportData(c *gin.Context) {
-	// Импорт данных
 }
