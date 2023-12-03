@@ -41,8 +41,8 @@ type Biometrics struct {
 }
 
 type Farm struct {
-	FarmID   int    `json:"id"`
-	AnimalID int    `json:"animalid"`
-	UserID   int    `json:"userid"`
-	Name     string `json:"name"`
+	FarmID   int    `json:"FarmID" db:"FarmID"`
+	AnimalID int    `json:"AnimalID"`
+	UserID   int    `json:"UserID"`
+	Name     string `json:"Name" binding:"required" db:"Name"`
 }

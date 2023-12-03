@@ -15,6 +15,9 @@ type Animals interface {
 }
 
 type Farms interface {
+	Create(UserID int, farm farmsage.Farm) (int, error)
+	GetAll(UserID int) ([]farmsage.Farm, error)
+	GetByID(UserID, FarmID int) (farmsage.Farm, error)
 }
 
 type Feed interface {
@@ -42,5 +45,6 @@ type Service struct {
 func NewService(repos *repository.Repository) *Service {
 	return &Service{
 		Authorization: NewAuthService(repos.Authorization),
+		Farms:         NewFarmService(repos.Farms),
 	}
 }

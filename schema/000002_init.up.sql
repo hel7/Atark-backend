@@ -26,7 +26,7 @@ CREATE TABLE Farm (
                       UserID INT UNSIGNED NOT NULL,
                       Name VARCHAR(255) NOT NULL,
                       FOREIGN KEY (UserID) REFERENCES User(UserID) ON DELETE CASCADE,
-                      FOREIGN KEY (AnimalID) REFERENCES Animal(AnimalID) ON DELETE SET NULL
+                      FOREIGN KEY (AnimalID) REFERENCES Animal(AnimalID) ON DELETE CASCADE
 );
 
 CREATE TABLE Activity (

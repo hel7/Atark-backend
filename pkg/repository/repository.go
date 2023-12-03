@@ -14,6 +14,9 @@ type Animals interface {
 }
 
 type Farms interface {
+	Create(UserID int, farm farmsage.Farm) (int, error)
+	GetAll(UserID int) ([]farmsage.Farm, error)
+	GetByID(UserID, FarmID int) (farmsage.Farm, error)
 }
 
 type Feed interface {
@@ -42,5 +45,6 @@ func NewRepository(db *sqlx.DB) *Repository {
 
 	return &Repository{
 		Authorization: NewAuthMysql(db),
+		Farms:         NewFarmsMysql(db),
 	}
 }
