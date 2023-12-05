@@ -56,13 +56,13 @@ func (h *Handlers) InitRoutes() *gin.Engine {
 
 		admin := api.Group("/admin")
 		{
-			users := api.Group("/users")
+			users := admin.Group("/users")
 			{
 				users.GET("/", h.getUsers)
 				users.POST("/", h.createUser)
-				users.GET("/:id", h.getUserByID)
-				users.PUT("/:id", h.updateUser)
-				users.DELETE("/:id", h.deleteUser)
+				users.GET("/:UserID", h.getUserByID)
+				users.PUT("/:UserID", h.updateUser)
+				users.DELETE("/:UserID", h.deleteUser)
 			}
 
 			data := admin.Group("/data")

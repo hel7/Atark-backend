@@ -3,14 +3,16 @@ package handlers
 import (
 	"github.com/gin-gonic/gin"
 	farmsage "github.com/hel7/Atark-backend"
+
 	"net/http"
 	"strconv"
 )
 
-type getAllFarms struct {
-	Data []farmsage.Farm `json:"data"`
+type UserResponse struct {
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Role     string `json:"role"`
 }
-
 type FarmResponse struct {
 	FarmID int    `json:"FarmID"`
 	Name   string `json:"Name"`
@@ -153,18 +155,6 @@ func (h *Handlers) getAnalyticsByDate(c *gin.Context) {
 
 }
 
-func (h *Handlers) getAdminUsers(c *gin.Context) {
-
-}
-
-func (h *Handlers) createAdminUser(c *gin.Context) {
-
-}
-
-func (h *Handlers) getAdminUserByID(c *gin.Context) {
-
-}
-
 func (h *Handlers) updateAdminUser(c *gin.Context) {
 
 }
@@ -174,15 +164,62 @@ func (h *Handlers) deleteAdminUser(c *gin.Context) {
 }
 
 func (h *Handlers) getUsers(c *gin.Context) {
+	users, err := h.services.Admin.GetAllUsers()
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
 
+	var usersResponse []UserResponse
+	for _, user := range users {
+		userResponse := UserResponse{
+			Username: user.Username,
+			Email:    user.Email,
+			Role:     user.Role,
+		}
+		usersResponse = append(usersResponse, userResponse)
+	}
+
+	c.JSON(http.StatusOK, gin.H{"users": usersResponse})
 }
 
 func (h *Handlers) createUser(c *gin.Context) {
+	var user farmsage.User
+	if err := c.BindJSON(&user); err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
 
+	userID, err := h.services.Admin.CreateUser(user)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"id": userID})
 }
 
 func (h *Handlers) getUserByID(c *gin.Context) {
+	userIDStr := c.Param("UserID")
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "Invalid UserID")
+		return
+	}
 
+	user, err := h.services.Admin.GetUserByID(userID)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	userResponse := UserResponse{
+		Username: user.Username,
+		Email:    user.Email,
+		Role:     user.Role,
+	}
+
+	c.JSON(http.StatusOK, userResponse)
 }
 
 func (h *Handlers) updateUser(c *gin.Context) {

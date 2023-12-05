@@ -30,6 +30,9 @@ type Analytics interface {
 }
 
 type Admin interface {
+	GetUserByID(userID int) (farmsage.User, error)
+	GetAllUsers() ([]farmsage.User, error)
+	CreateUser(user farmsage.User) (int, error)
 }
 
 type Service struct {
@@ -46,5 +49,6 @@ func NewService(repos *repository.Repository) *Service {
 	return &Service{
 		Authorization: NewAuthService(repos.Authorization),
 		Farms:         NewFarmService(repos.Farms),
+		Admin:         NewAdminService(repos.Admin),
 	}
 }

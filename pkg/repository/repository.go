@@ -29,6 +29,9 @@ type Analytics interface {
 }
 
 type Admin interface {
+	GetUserByID(userID int) (farmsage.User, error)
+	CreateUser(user farmsage.User) (int, error)
+	GetAllUsers() ([]farmsage.User, error)
 }
 
 type Repository struct {
@@ -42,9 +45,9 @@ type Repository struct {
 }
 
 func NewRepository(db *sqlx.DB) *Repository {
-
 	return &Repository{
 		Authorization: NewAuthMysql(db),
 		Farms:         NewFarmsMysql(db),
+		Admin:         NewUserMysql(db),
 	}
 }
