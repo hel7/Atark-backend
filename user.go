@@ -5,5 +5,5 @@ type User struct {
 	Username string `json:"username" binding:"required" db:"Username"`
 	Email    string `json:"email" binding:"required" db:"Email"`
 	Password string `json:"password" binding:"required" db:"Password"`
-	Role     string `json:"role" db:"Role"`
+	Role     string `json:"user_role" db:"Role"`
 }

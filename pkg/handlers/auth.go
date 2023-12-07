@@ -19,7 +19,7 @@ func (h *Handlers) registerUser(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, map[string]interface{}{
-		"id": id,
+		"UserID": id,
 	})
 }
 

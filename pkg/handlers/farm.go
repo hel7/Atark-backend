@@ -14,8 +14,16 @@ type UserResponse struct {
 	Role     string `json:"role"`
 }
 type FarmResponse struct {
-	FarmID int    `json:"FarmID"`
-	Name   string `json:"Name"`
+	FarmID int    `json:"farmID"`
+	Name   string `json:"name"`
+}
+type AnimalResponse struct {
+	Name        string `json:"name"`
+	Number      int    `json:"number"`
+	DateOfBirth string `json:"dateOfBirth"`
+	Sex         string `json:"sex"`
+	Age         int    `json:"age"`
+	MedicalInfo string `json:"medicalInfo"`
 }
 
 func (h *Handlers) getUserFarms(c *gin.Context) {
@@ -38,7 +46,7 @@ func (h *Handlers) getUserFarms(c *gin.Context) {
 		farmsResponse = append(farmsResponse, farmResponse)
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": farmsResponse})
+	c.JSON(http.StatusOK, gin.H{"farms": farmsResponse})
 }
 
 func (h *Handlers) getFarmByID(c *gin.Context) {
@@ -76,13 +84,13 @@ func (h *Handlers) createFarm(c *gin.Context) {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
-	id, err := h.services.Farms.Create(UserID, input)
+	createdFarmID, err := h.services.Farms.Create(UserID, input)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 	c.JSON(http.StatusOK, map[string]interface{}{
-		"id": id,
+		"FarmID": createdFarmID,
 	})
 }
 
@@ -95,13 +103,70 @@ func (h *Handlers) deleteFarm(c *gin.Context) {
 }
 
 func (h *Handlers) getAnimalsOnFarm(c *gin.Context) {
+	farmIDStr := c.Param("farmID")
+	farmID, err := strconv.Atoi(farmIDStr)
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
 
+	animals, err := h.services.Animals.GetAll(farmID)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	var animalsResponse []AnimalResponse
+	for _, animal := range animals {
+		animalResponse := AnimalResponse{
+			Name:        animal.Name,
+			Number:      animal.Number,
+			DateOfBirth: animal.DateOfBirth,
+			Sex:         animal.Sex,
+			Age:         animal.Age,
+			MedicalInfo: animal.MedicalInfo,
+		}
+		animalsResponse = append(animalsResponse, animalResponse)
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": animalsResponse})
 }
 func (h *Handlers) getAnimalByID(c *gin.Context) {
+	UserID, err := getUserID(c)
+	animalIDStr := c.Param("animalID")
+	animalID, err := strconv.Atoi(animalIDStr)
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
 
+	animal, err := h.services.Animals.GetByID(UserID, animalID)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, animal)
 }
 func (h *Handlers) addAnimalToFarm(c *gin.Context) {
+	UserID, err := getUserID(c)
+	if err != nil {
+		return
+	}
 
+	var input farmsage.Animal
+	if err := c.BindJSON(&input); err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+	createdAnimalID, err := h.services.Animals.Create(UserID, input)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+	c.JSON(http.StatusOK, map[string]interface{}{
+		"AnimalID": createdAnimalID,
+	})
 }
 
 func (h *Handlers) removeAnimalFromFarm(c *gin.Context) {
@@ -126,10 +191,31 @@ func (h *Handlers) deleteFeedingSchedule(c *gin.Context) {
 
 func (h *Handlers) getFeedsOnFarm(c *gin.Context) {
 
+	feeds, err := h.services.Feed.GetAll()
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, feeds)
 }
 
 func (h *Handlers) addFeedToFarm(c *gin.Context) {
+	var feed farmsage.Feed
+	if err := c.ShouldBindJSON(&feed); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid input data")
+		return
+	}
 
+	createdFeedID, err := h.services.Feed.Create(feed)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, map[string]interface{}{
+		"FeedID": createdFeedID,
+	})
 }
 
 func (h *Handlers) removeFeedFromFarm(c *gin.Context) {

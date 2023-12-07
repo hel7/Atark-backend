@@ -1,0 +1,22 @@
+package service
+
+import (
+	farmsage "github.com/hel7/Atark-backend"
+	"github.com/hel7/Atark-backend/pkg/repository"
+)
+
+type FeedService struct {
+	repo repository.Feed
+}
+
+func NewFeedService(repo repository.Feed) *FeedService {
+	return &FeedService{repo: repo}
+}
+
+func (s *FeedService) Create(feed farmsage.Feed) (int, error) {
+	return s.repo.Create(feed)
+}
+
+func (s *FeedService) GetAll() ([]farmsage.Feed, error) {
+	return s.repo.GetAll()
+}

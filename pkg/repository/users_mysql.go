@@ -23,9 +23,9 @@ func NewUserMysql(db *sqlx.DB) *UserMysql {
 func (r *UserMysql) CreateUser(user farmsage.User) (int, error) {
 	hashedPassword := generatePasswordHash(user.Password)
 
-	query := fmt.Sprintf("INSERT INTO %s (username, email, password) VALUES (?, ?, ?)", usersTable)
+	query := fmt.Sprintf("INSERT INTO %s (username, email, password,role) VALUES (?, ?, ?, ?)", usersTable)
 
-	result, err := r.db.Exec(query, user.Username, user.Email, hashedPassword)
+	result, err := r.db.Exec(query, user.Username, user.Email, hashedPassword, user.Role)
 	if err != nil {
 		return 0, err
 	}
@@ -37,8 +37,6 @@ func (r *UserMysql) CreateUser(user farmsage.User) (int, error) {
 
 	return int(id), nil
 }
-
-// ... (інші функції та структури)
 
 func (r *UserMysql) GetUserByID(userID int) (farmsage.User, error) {
 	var user farmsage.User

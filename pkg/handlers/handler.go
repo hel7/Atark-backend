@@ -31,16 +31,16 @@ func (h *Handlers) InitRoutes() *gin.Engine {
 		api.PUT("/farms/:farmID", h.updateFarm)
 		api.DELETE("/farms/:farmID", h.deleteFarm)
 
+		api.GET("/feeds", h.getFeedsOnFarm)
+		api.POST("/feeds", h.addFeedToFarm)
+		api.DELETE("/feeds/:feedID", h.removeFeedFromFarm)
+
 		farms := api.Group("/farms/:farmID")
 		{
 			farms.GET("/animals", h.getAnimalsOnFarm)
 			farms.POST("/animals", h.addAnimalToFarm)
 			farms.GET("/animals/:animalID", h.getAnimalByID)
 			farms.DELETE("/animals/:animalID", h.removeAnimalFromFarm)
-
-			farms.GET("/feeds", h.getFeedsOnFarm)
-			farms.POST("/feeds", h.addFeedToFarm)
-			farms.DELETE("/feeds/:feedID", h.removeFeedFromFarm)
 
 			farms.POST("/animals/:animalID/feeds/:feedID/schedule", h.addFeedToAnimalSchedule)
 			farms.DELETE("/animals/:animalID/feeds/:feedID/schedule", h.deleteFeedingSchedule)
@@ -55,6 +55,7 @@ func (h *Handlers) InitRoutes() *gin.Engine {
 		}
 
 		admin := api.Group("/admin")
+		admin.Use(isAdmin)
 		{
 			users := admin.Group("/users")
 			{

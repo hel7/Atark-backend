@@ -12,6 +12,9 @@ type Authorization interface {
 }
 
 type Animals interface {
+	Create(UserID int, animal farmsage.Animal) (int, error)
+	GetAll(UserID int) ([]farmsage.Animal, error)
+	GetByID(UserID, AnimalID int) (farmsage.Animal, error)
 }
 
 type Farms interface {
@@ -21,6 +24,8 @@ type Farms interface {
 }
 
 type Feed interface {
+	Create(feed farmsage.Feed) (int, error)
+	GetAll() ([]farmsage.Feed, error)
 }
 
 type FeedingSchedule interface {
@@ -50,5 +55,7 @@ func NewService(repos *repository.Repository) *Service {
 		Authorization: NewAuthService(repos.Authorization),
 		Farms:         NewFarmService(repos.Farms),
 		Admin:         NewAdminService(repos.Admin),
+		Animals:       NewAnimalService(repos.Animals),
+		Feed:          NewFeedService(repos.Feed),
 	}
 }

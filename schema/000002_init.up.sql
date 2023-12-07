@@ -3,7 +3,7 @@ CREATE TABLE User (
     Username VARCHAR(255) NOT NULL,
     Email VARCHAR(255) NOT NULL,
     Password VARCHAR(255) NOT NULL,
-    Role ENUM('') NOT NULL
+    Role ENUM('User','Admin') NOT NULL
 );
 
 CREATE TABLE Feed (
@@ -16,10 +16,10 @@ CREATE TABLE Animal (
     AnimalID INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     Name VARCHAR(255) NOT NULL,
     Number INT NOT NULL,
-    DateOfBirth DATE,
-    Sex ENUM('') NOT NULL,
+    DateOfBirth DATE NOT NULL,
+    Sex ENUM('M', 'F') NOT NULL,
     Age INT NOT NULL,
-    MedicalInfo TEXT NOT NULL
+     MedicalInfo TEXT NOT NULL
 );
 
 CREATE TABLE Farm (

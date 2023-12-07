@@ -1,11 +1,13 @@
 package farmsage
 
 type Animal struct {
-	AnimalID    int    `json:"id"`
-	Name        string `json:"name"`
-	Sex         string `json:"sex"`
-	Age         int    `json:"age"`
-	MedicalInfo string `json:"medicalinfo"`
+	AnimalID    int    `json:"id" db:"AnimalID"`
+	Name        string `json:"name" binding:"required" db:"Name"`
+	Number      int    `json:"number" db:"Number"`
+	DateOfBirth string `json:"date_of_birth" db:"DateOfBirth"`
+	Sex         string `json:"sex" db:"Sex"`
+	Age         int    `json:"age" db:"Age"`
+	MedicalInfo string `json:"medical_info" db:"MedicalInfo"`
 }
 
 type Activity struct {
@@ -19,16 +21,16 @@ type Activity struct {
 }
 
 type FeedingSchedule struct {
-	ScheduleID  int    `json:"id"`
-	AnimalID    int    `json:"animalid"`
-	FeedID      int    `json:"feedid"`
-	FeedingTime string `json:"feedingtime"`
+	ScheduleID  int    `json:"id" db:"ScheduleID"`
+	AnimalID    int    `json:"animalid" db:"AnimalID"`
+	FeedID      int    `json:"feedid" db:"FeedID"`
+	FeedingTime string `json:"feedingtime" db:"FeedingTime"`
 }
 
 type Feed struct {
-	FeedID   int    `json:"id"`
-	Name     string `json:"name"`
-	Quantity int    `json:"quantity"`
+	FeedID   int    `json:"id" db:"FeedID"`
+	Name     string `json:"name" binding:"required" db:"Name"`
+	Quantity int    `json:"quantity" db:"Quantity"`
 }
 
 type Biometrics struct {
