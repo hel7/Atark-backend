@@ -20,3 +20,6 @@ func (s *FeedService) Create(feed farmsage.Feed) (int, error) {
 func (s *FeedService) GetAll() ([]farmsage.Feed, error) {
 	return s.repo.GetAll()
 }
+func (s *FeedService) Delete(FeedID int) error {
+	return s.repo.Delete(FeedID)
+}

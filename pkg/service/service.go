@@ -15,6 +15,7 @@ type Animals interface {
 	Create(UserID int, animal farmsage.Animal) (int, error)
 	GetAll(UserID int) ([]farmsage.Animal, error)
 	GetByID(UserID, AnimalID int) (farmsage.Animal, error)
+	Delete(UserID, AnimalID int) error
 }
 
 type Farms interface {
@@ -27,11 +28,13 @@ type Farms interface {
 type Feed interface {
 	Create(feed farmsage.Feed) (int, error)
 	GetAll() ([]farmsage.Feed, error)
+	Delete(feedID int) error
 }
 
 type FeedingSchedule interface {
 	Create(feedingSchedule farmsage.FeedingSchedule) (int, error)
 	GetByID(animalID int) ([]farmsage.FeedingSchedule, error)
+	Delete(scheduleID int) error
 }
 
 type Analytics interface {

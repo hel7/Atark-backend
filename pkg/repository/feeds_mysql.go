@@ -49,3 +49,9 @@ func (r *FeedsMysql) GetAll() ([]farmsage.Feed, error) {
 	}
 	return feeds, nil
 }
+
+func (r *FeedsMysql) Delete(feedID int) error {
+	query := "DELETE FROM Feed WHERE FeedID = ?"
+	_, err := r.db.Exec(query, feedID)
+	return err
+}

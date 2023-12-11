@@ -31,19 +31,19 @@ func (h *Handlers) InitRoutes() *gin.Engine {
 		api.PUT("/farms/:farmID", h.updateFarm)
 		api.DELETE("/farms/:farmID", h.deleteFarm)
 
-		api.GET("/feeds", h.getFeedsOnFarm)
-		api.POST("/feeds", h.addFeedToFarm)
-		api.DELETE("/feeds/:feedID", h.removeFeedFromFarm)
-
 		farms := api.Group("/farms/:farmID")
 		{
+			api.GET("/feeds", h.getFeedsOnFarm)
+			api.POST("/feeds", h.addFeedToFarm)
+			api.DELETE("/feeds/:feedID", h.removeFeedFromFarm)
+
 			farms.GET("/animals", h.getAnimalsOnFarm)
 			farms.POST("/animals", h.addAnimalToFarm)
 			farms.GET("/animals/:animalID", h.getAnimalByID)
 			farms.DELETE("/animals/:animalID", h.removeAnimalFromFarm)
 
 			farms.POST("/animals/:animalID/feeds/:feedID/", h.addAnimalFeedSchedule)
-			farms.DELETE("/animals/:animalID/feeds/:feedID/", h.deleteFeedingSchedule)
+			farms.DELETE("/animals/:animalID/schedule/:scheduleID", h.deleteFeedingSchedule)
 			farms.PUT("/animals/:animalID/feeds/:feedID/", h.updateAnimalFeedSchedule)
 			farms.GET("/animals/:animalID/feeds/:feedID/", h.getAnimalFeedSchedule)
 		}

@@ -20,3 +20,6 @@ func (s *FeedingScheduleService) Create(feedingSchedule farmsage.FeedingSchedule
 func (s *FeedingScheduleService) GetByID(animalID int) ([]farmsage.FeedingSchedule, error) {
 	return s.repo.GetByID(animalID)
 }
+func (s *FeedingScheduleService) Delete(scheduleID int) error {
+	return s.repo.Delete(scheduleID)
+}

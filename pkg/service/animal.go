@@ -24,3 +24,6 @@ func (s *AnimalService) GetAll(UserID int) ([]farmsage.Animal, error) {
 func (s *AnimalService) GetByID(UserID, AnimalID int) (farmsage.Animal, error) {
 	return s.repo.GetByID(UserID, AnimalID)
 }
+func (s *AnimalService) Delete(UserID, AnimalID int) error {
+	return s.repo.Delete(UserID, AnimalID)
+}

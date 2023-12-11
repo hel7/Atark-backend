@@ -51,9 +51,12 @@ func (r *AnimalsMysql) Create(UserID int, animal farmsage.Animal) (int, error) {
 
 func (r *AnimalsMysql) GetAll(UserID int) ([]farmsage.Animal, error) {
 	var animals []farmsage.Animal
-	query := fmt.Sprintf("SELECT Animal.AnimalID, Animal.AnimalName, Animal.Number, Animal.DateOfBirth, Animal.Sex, " +
-		"Animal.Age, Animal.MedicalInfo FROM Animal " +
-		"INNER JOIN Farm ON Farm.AnimalID = Animal.AnimalID WHERE Farm.UserID = ?")
+	query := fmt.Sprintf("SELECT Animal.AnimalID, Animal.AnimalName, Animal.Number, " +
+		"Animal.DateOfBirth, Animal.Sex, Animal.Age, Animal.MedicalInfo " +
+		"FROM Animal " +
+		"WHERE Animal.AnimalID IN ( " +
+		"SELECT Farm.AnimalID " +
+		"FROM Farm WHERE Farm.UserID = ?)")
 	err := r.db.Select(&animals, query, UserID)
 	return animals, err
 }
@@ -68,4 +71,9 @@ func (r *AnimalsMysql) GetByID(UserID, AnimalID int) (farmsage.Animal, error) {
 
 	err := r.db.Get(&animal, query, UserID, AnimalID)
 	return animal, err
+}
+func (r *AnimalsMysql) Delete(UserID, AnimalID int) error {
+	query := fmt.Sprintf("DELETE FROM %s WHERE AnimalID = ? AND EXISTS (SELECT 1 FROM Farm WHERE AnimalID = ? AND UserID = ?)", animalsTable)
+	_, err := r.db.Exec(query, AnimalID, AnimalID, UserID)
+	return err
 }

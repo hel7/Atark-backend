@@ -109,6 +109,7 @@ func (h *Handlers) deleteFarm(c *gin.Context) {
 		newErrorResponse(c, http.StatusBadRequest, "Invalid id param")
 		return
 	}
+
 	err = h.services.Farms.Delete(UserID, id)
 	if err != nil {
 		logrus.Error("Failed to delete farm:", err)
@@ -189,23 +190,42 @@ func (h *Handlers) addAnimalToFarm(c *gin.Context) {
 }
 
 func (h *Handlers) removeAnimalFromFarm(c *gin.Context) {
+	UserID, err := getUserID(c)
+	animalIDStr := c.Param("animalID")
+	animalID, err := strconv.Atoi(animalIDStr)
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
 
-}
+	err = h.services.Animals.Delete(UserID, animalID)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
 
-func (h *Handlers) getFeedingScheduleByFarm(c *gin.Context) {
-
-}
-
-func (h *Handlers) createFeedingSchedule(c *gin.Context) {
-
-}
-
-func (h *Handlers) updateFeedingSchedule(c *gin.Context) {
-
+	c.JSON(http.StatusOK, statusResponse{
+		Status: "Ok",
+	})
 }
 
 func (h *Handlers) deleteFeedingSchedule(c *gin.Context) {
+	scheduleIDStr := c.Param("scheduleID")
+	scheduleID, err := strconv.Atoi(scheduleIDStr)
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "Invalid scheduleID")
+		return
+	}
 
+	err = h.services.FeedingSchedule.Delete(scheduleID)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, statusResponse{
+		Status: "Ok",
+	})
 }
 
 func (h *Handlers) getFeedsOnFarm(c *gin.Context) {
@@ -239,6 +259,22 @@ func (h *Handlers) addFeedToFarm(c *gin.Context) {
 
 func (h *Handlers) removeFeedFromFarm(c *gin.Context) {
 
+	feedIDStr := c.Param("feedID")
+	feedID, err := strconv.Atoi(feedIDStr)
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "Invalid feed ID")
+		return
+	}
+
+	err = h.services.Feed.Delete(feedID)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, statusResponse{
+		Status: "Ok",
+	})
 }
 func (h *Handlers) addAnimalFeedSchedule(c *gin.Context) {
 	var feedingSchedule farmsage.FeedingSchedule
@@ -257,9 +293,7 @@ func (h *Handlers) addAnimalFeedSchedule(c *gin.Context) {
 		"FeedingScheduleID": createdFeedID,
 	})
 }
-func (h *Handlers) removeAnimalFeedSchedule(c *gin.Context) {
 
-}
 func (h *Handlers) updateAnimalFeedSchedule(c *gin.Context) {
 
 }
