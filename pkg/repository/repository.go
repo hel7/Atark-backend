@@ -20,6 +20,7 @@ type Farms interface {
 	Create(UserID int, farm farmsage.Farm) (int, error)
 	GetAll(UserID int) ([]farmsage.Farm, error)
 	GetByID(UserID, FarmID int) (farmsage.Farm, error)
+	Delete(UserID, FarmID int) error
 }
 
 type Feed interface {
@@ -28,6 +29,8 @@ type Feed interface {
 }
 
 type FeedingSchedule interface {
+	Create(feedingSchedule farmsage.FeedingSchedule) (int, error)
+	GetByID(animalID int) ([]farmsage.FeedingSchedule, error)
 }
 
 type Analytics interface {
@@ -51,10 +54,11 @@ type Repository struct {
 
 func NewRepository(db *sqlx.DB) *Repository {
 	return &Repository{
-		Authorization: NewAuthMysql(db),
-		Farms:         NewFarmsMysql(db),
-		Admin:         NewUserMysql(db),
-		Animals:       NewAnimalsMysql(db),
-		Feed:          NewFeedsMysql(db),
+		Authorization:   NewAuthMysql(db),
+		Farms:           NewFarmsMysql(db),
+		Admin:           NewUserMysql(db),
+		Animals:         NewAnimalsMysql(db),
+		Feed:            NewFeedsMysql(db),
+		FeedingSchedule: NewFeedingScheduleMysql(db),
 	}
 }

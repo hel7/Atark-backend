@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"fmt"
 	"github.com/hel7/Atark-backend"
 	"github.com/jmoiron/sqlx"
 )
@@ -20,8 +19,8 @@ func (r *FeedsMysql) Create(feed farmsage.Feed) (int, error) {
 		return 0, err
 	}
 
-	createFeedQuery := "INSERT INTO Feed (Name, Quantity) VALUES (?, ?)"
-	res, err := tx.Exec(createFeedQuery, feed.Name, feed.Quantity)
+	createFeedQuery := "INSERT INTO Feed (FeedName, Quantity) VALUES (?, ?)"
+	res, err := tx.Exec(createFeedQuery, feed.FeedName, feed.Quantity)
 	if err != nil {
 		tx.Rollback()
 		return 0, err
@@ -43,7 +42,7 @@ func (r *FeedsMysql) Create(feed farmsage.Feed) (int, error) {
 
 func (r *FeedsMysql) GetAll() ([]farmsage.Feed, error) {
 	var feeds []farmsage.Feed
-	query := fmt.Sprintf("SELECT * FROM %s", feedsTable)
+	query := "SELECT * FROM Feed"
 	err := r.db.Select(&feeds, query)
 	if err != nil {
 		return nil, err

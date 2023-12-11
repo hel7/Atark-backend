@@ -20,8 +20,8 @@ func (r *AnimalsMysql) Create(UserID int, animal farmsage.Animal) (int, error) {
 		return 0, err
 	}
 
-	createAnimalQuery := "INSERT INTO Animal (Name, Number, DateOfBirth, Sex, Age, MedicalInfo) VALUES (?, ?, ?, ?, ?, ?)"
-	res, err := tx.Exec(createAnimalQuery, animal.Name, animal.Number, animal.DateOfBirth, animal.Sex, animal.Age, animal.MedicalInfo)
+	createAnimalQuery := "INSERT INTO Animal (AnimalName, Number, DateOfBirth, Sex, Age, MedicalInfo) VALUES (?, ?, ?, ?, ?, ?)"
+	res, err := tx.Exec(createAnimalQuery, animal.AnimalName, animal.Number, animal.DateOfBirth, animal.Sex, animal.Age, animal.MedicalInfo)
 	if err != nil {
 		tx.Rollback()
 		return 0, err
@@ -33,7 +33,7 @@ func (r *AnimalsMysql) Create(UserID int, animal farmsage.Animal) (int, error) {
 		return 0, err
 	}
 
-	linkAnimalQuery := "INSERT INTO Farm (UserID, AnimalID, Name) VALUES (?, ?, ?)"
+	linkAnimalQuery := "INSERT INTO Farm (UserID, AnimalID, FarmName) VALUES (?, ?, ?)"
 	_, err = tx.Exec(linkAnimalQuery, UserID, animalID, "FarmName")
 	if err != nil {
 		tx.Rollback()
@@ -51,7 +51,7 @@ func (r *AnimalsMysql) Create(UserID int, animal farmsage.Animal) (int, error) {
 
 func (r *AnimalsMysql) GetAll(UserID int) ([]farmsage.Animal, error) {
 	var animals []farmsage.Animal
-	query := fmt.Sprintf("SELECT Animal.AnimalID, Animal.Name, Animal.Number, Animal.DateOfBirth, Animal.Sex, " +
+	query := fmt.Sprintf("SELECT Animal.AnimalID, Animal.AnimalName, Animal.Number, Animal.DateOfBirth, Animal.Sex, " +
 		"Animal.Age, Animal.MedicalInfo FROM Animal " +
 		"INNER JOIN Farm ON Farm.AnimalID = Animal.AnimalID WHERE Farm.UserID = ?")
 	err := r.db.Select(&animals, query, UserID)
@@ -60,7 +60,7 @@ func (r *AnimalsMysql) GetAll(UserID int) ([]farmsage.Animal, error) {
 
 func (r *AnimalsMysql) GetByID(UserID, AnimalID int) (farmsage.Animal, error) {
 	var animal farmsage.Animal
-	query := fmt.Sprintf("SELECT Animal.AnimalID, Animal.Name, Animal.Number, " +
+	query := fmt.Sprintf("SELECT Animal.AnimalID, Animal.AnimalName, Animal.Number, " +
 		"Animal.DateOfBirth, Animal.Sex, Animal.Age, Animal.MedicalInfo " +
 		"FROM Animal " +
 		"INNER JOIN Farm ON Farm.AnimalID = Animal.AnimalID " +

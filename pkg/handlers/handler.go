@@ -42,10 +42,10 @@ func (h *Handlers) InitRoutes() *gin.Engine {
 			farms.GET("/animals/:animalID", h.getAnimalByID)
 			farms.DELETE("/animals/:animalID", h.removeAnimalFromFarm)
 
-			farms.POST("/animals/:animalID/feeds/:feedID/schedule", h.addFeedToAnimalSchedule)
-			farms.DELETE("/animals/:animalID/feeds/:feedID/schedule", h.deleteFeedingSchedule)
-			farms.PUT("/animals/:animalID/feeds/:feedID/schedule", h.updateFeedInAnimalSchedule)
-			farms.GET("/animals/:animalID/feeds/:feedID/schedule", h.getAnimalFeedSchedule)
+			farms.POST("/animals/:animalID/feeds/:feedID/", h.addAnimalFeedSchedule)
+			farms.DELETE("/animals/:animalID/feeds/:feedID/", h.deleteFeedingSchedule)
+			farms.PUT("/animals/:animalID/feeds/:feedID/", h.updateAnimalFeedSchedule)
+			farms.GET("/animals/:animalID/feeds/:feedID/", h.getAnimalFeedSchedule)
 		}
 
 		analytics := api.Group("/analytics")
@@ -54,8 +54,7 @@ func (h *Handlers) InitRoutes() *gin.Engine {
 			analytics.GET("/:date", h.getAnalyticsByDate)
 		}
 
-		admin := api.Group("/admin")
-		admin.Use(isAdmin)
+		admin := api.Group("/admin", h.adminRequired)
 		{
 			users := admin.Group("/users")
 			{

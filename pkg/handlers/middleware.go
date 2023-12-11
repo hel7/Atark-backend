@@ -43,3 +43,23 @@ func getUserID(c *gin.Context) (int, error) {
 
 	return idInt, nil
 }
+func (h *Handlers) adminRequired(c *gin.Context) {
+	userID, err := getUserID(c)
+	if err != nil {
+		newErrorResponse(c, http.StatusUnauthorized, "User not authenticated")
+		return
+	}
+
+	user, err := h.services.GetUserByID(userID)
+	if err != nil {
+		newErrorResponse(c, http.StatusUnauthorized, "User not found")
+		return
+	}
+
+	if user.Role != "Admin" {
+		newErrorResponse(c, http.StatusForbidden, "Admin role required")
+		return
+	}
+
+	c.Next()
+}

@@ -21,6 +21,7 @@ type Farms interface {
 	Create(UserID int, farm farmsage.Farm) (int, error)
 	GetAll(UserID int) ([]farmsage.Farm, error)
 	GetByID(UserID, FarmID int) (farmsage.Farm, error)
+	Delete(UserID, FarmID int) error
 }
 
 type Feed interface {
@@ -29,6 +30,8 @@ type Feed interface {
 }
 
 type FeedingSchedule interface {
+	Create(feedingSchedule farmsage.FeedingSchedule) (int, error)
+	GetByID(animalID int) ([]farmsage.FeedingSchedule, error)
 }
 
 type Analytics interface {
@@ -52,10 +55,11 @@ type Service struct {
 
 func NewService(repos *repository.Repository) *Service {
 	return &Service{
-		Authorization: NewAuthService(repos.Authorization),
-		Farms:         NewFarmService(repos.Farms),
-		Admin:         NewAdminService(repos.Admin),
-		Animals:       NewAnimalService(repos.Animals),
-		Feed:          NewFeedService(repos.Feed),
+		Authorization:   NewAuthService(repos.Authorization),
+		Farms:           NewFarmService(repos.Farms),
+		Admin:           NewAdminService(repos.Admin),
+		Animals:         NewAnimalService(repos.Animals),
+		Feed:            NewFeedService(repos.Feed),
+		FeedingSchedule: NewFeedingScheduleService(repos.FeedingSchedule),
 	}
 }

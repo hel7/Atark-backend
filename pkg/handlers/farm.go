@@ -3,6 +3,7 @@ package handlers
 import (
 	"github.com/gin-gonic/gin"
 	farmsage "github.com/hel7/Atark-backend"
+	"github.com/sirupsen/logrus"
 
 	"net/http"
 	"strconv"
@@ -41,7 +42,7 @@ func (h *Handlers) getUserFarms(c *gin.Context) {
 	for _, farm := range farms {
 		farmResponse := FarmResponse{
 			FarmID: farm.FarmID,
-			Name:   farm.Name,
+			Name:   farm.FarmName,
 		}
 		farmsResponse = append(farmsResponse, farmResponse)
 	}
@@ -67,7 +68,7 @@ func (h *Handlers) getFarmByID(c *gin.Context) {
 
 	farmResponse := FarmResponse{
 		FarmID: farm.FarmID,
-		Name:   farm.Name,
+		Name:   farm.FarmName,
 	}
 
 	c.JSON(http.StatusOK, farmResponse)
@@ -99,7 +100,25 @@ func (h *Handlers) updateFarm(c *gin.Context) {
 }
 
 func (h *Handlers) deleteFarm(c *gin.Context) {
+	UserID, err := getUserID(c)
+	if err != nil {
+		return
+	}
+	id, err := strconv.Atoi(c.Param("farmID"))
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "Invalid id param")
+		return
+	}
+	err = h.services.Farms.Delete(UserID, id)
+	if err != nil {
+		logrus.Error("Failed to delete farm:", err)
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
 
+	c.JSON(http.StatusOK, statusResponse{
+		Status: "Ok",
+	})
 }
 
 func (h *Handlers) getAnimalsOnFarm(c *gin.Context) {
@@ -119,7 +138,7 @@ func (h *Handlers) getAnimalsOnFarm(c *gin.Context) {
 	var animalsResponse []AnimalResponse
 	for _, animal := range animals {
 		animalResponse := AnimalResponse{
-			Name:        animal.Name,
+			Name:        animal.AnimalName,
 			Number:      animal.Number,
 			DateOfBirth: animal.DateOfBirth,
 			Sex:         animal.Sex,
@@ -129,7 +148,7 @@ func (h *Handlers) getAnimalsOnFarm(c *gin.Context) {
 		animalsResponse = append(animalsResponse, animalResponse)
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": animalsResponse})
+	c.JSON(http.StatusOK, gin.H{"animals": animalsResponse})
 }
 func (h *Handlers) getAnimalByID(c *gin.Context) {
 	UserID, err := getUserID(c)
@@ -221,18 +240,48 @@ func (h *Handlers) addFeedToFarm(c *gin.Context) {
 func (h *Handlers) removeFeedFromFarm(c *gin.Context) {
 
 }
-func (h *Handlers) addFeedToAnimalSchedule(c *gin.Context) {
+func (h *Handlers) addAnimalFeedSchedule(c *gin.Context) {
+	var feedingSchedule farmsage.FeedingSchedule
+	if err := c.ShouldBindJSON(&feedingSchedule); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid input data")
+		return
+	}
+
+	createdFeedID, err := h.services.FeedingSchedule.Create(feedingSchedule)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, map[string]interface{}{
+		"FeedingScheduleID": createdFeedID,
+	})
+}
+func (h *Handlers) removeAnimalFeedSchedule(c *gin.Context) {
 
 }
-func (h *Handlers) removeFeedFromAnimalSchedule(c *gin.Context) {
-
-}
-func (h *Handlers) updateFeedInAnimalSchedule(c *gin.Context) {
+func (h *Handlers) updateAnimalFeedSchedule(c *gin.Context) {
 
 }
 func (h *Handlers) getAnimalFeedSchedule(c *gin.Context) {
+	animalIDStr := c.Param("animalID")
+	animalID, err := strconv.Atoi(animalIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid animal ID"})
+		return
+	}
+
+	feedingSchedule, err := h.services.FeedingSchedule.GetByID(animalID)
+	if err != nil {
+		logrus.Error("Failed to get feeding schedule: ", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get feeding schedule"})
+		return
+	}
+
+	c.JSON(http.StatusOK, feedingSchedule)
 
 }
+
 func (h *Handlers) getAnalytics(c *gin.Context) {
 
 }

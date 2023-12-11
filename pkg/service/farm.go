@@ -24,3 +24,6 @@ func (s *FarmService) GetAll(UserID int) ([]farmsage.Farm, error) {
 func (s *FarmService) GetByID(UserID, FarmID int) (farmsage.Farm, error) {
 	return s.repo.GetByID(UserID, FarmID)
 }
+func (s *FarmService) Delete(UserID, FarmID int) error {
+	return s.repo.Delete(UserID, FarmID)
+}
