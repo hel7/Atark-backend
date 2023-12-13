@@ -27,3 +27,11 @@ func (s *FarmService) GetByID(UserID, FarmID int) (farmsage.Farm, error) {
 func (s *FarmService) Delete(UserID, FarmID int) error {
 	return s.repo.Delete(UserID, FarmID)
 }
+
+func (s *FarmService) Update(UserID, id int, input farmsage.UpdateFarmInput) error {
+	if err := input.Validate(); err != nil {
+		return err
+	}
+
+	return s.repo.Update(UserID, id, input)
+}

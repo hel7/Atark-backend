@@ -23,3 +23,10 @@ func (s *FeedingScheduleService) GetByID(animalID int) ([]farmsage.FeedingSchedu
 func (s *FeedingScheduleService) Delete(scheduleID int) error {
 	return s.repo.Delete(scheduleID)
 }
+func (s *FeedingScheduleService) Update(scheduleID int, input farmsage.UpdateFeedingScheduleInput) error {
+	if err := input.Validate(); err != nil {
+		return err
+	}
+
+	return s.repo.Update(scheduleID, input)
+}

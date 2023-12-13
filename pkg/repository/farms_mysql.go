@@ -4,6 +4,8 @@ import (
 	"fmt"
 	farmsage "github.com/hel7/Atark-backend"
 	"github.com/jmoiron/sqlx"
+	"github.com/sirupsen/logrus"
+	"strings"
 )
 
 type FarmsMysql struct {
@@ -20,9 +22,8 @@ func (r *FarmsMysql) Create(UserID int, farm farmsage.Farm) (int, error) {
 		return 0, err
 	}
 
-	createFarmQuery := fmt.Sprintf("INSERT INTO %s (UserID, FarmName) VALUES (?,?)", farmsTable)
+	createFarmQuery := fmt.Sprintf("INSERT INTO %s (UserID, FarmName) VALUES (?, ?)", farmsTable)
 	res, err := tx.Exec(createFarmQuery, UserID, farm.FarmName)
-
 	if err != nil {
 		tx.Rollback()
 		return 0, err
@@ -59,5 +60,26 @@ func (r *FarmsMysql) GetByID(UserID, FarmID int) (farmsage.Farm, error) {
 func (r *FarmsMysql) Delete(UserID, FarmID int) error {
 	query := fmt.Sprintf("DELETE FROM %s WHERE FarmID = ? AND UserID = ? ", farmsTable)
 	_, err := r.db.Exec(query, FarmID, UserID)
+	return err
+}
+
+func (r *FarmsMysql) Update(UserID, id int, input farmsage.UpdateFarmInput) error {
+	setValues := make([]string, 0)
+	args := make([]interface{}, 0)
+
+	if input.FarmName != nil {
+		setValues = append(setValues, "FarmName=?")
+		args = append(args, *input.FarmName)
+	}
+
+	setQuery := strings.Join(setValues, ", ")
+
+	query := fmt.Sprintf("UPDATE %s SET %s WHERE FarmID=? AND UserID=?", farmsTable, setQuery)
+
+	args = append(args, id, UserID)
+	logrus.Debugf("updateQuery: %s", query)
+	logrus.Debugf("args: %v", args)
+
+	_, err := r.db.Exec(query, args...)
 	return err
 }

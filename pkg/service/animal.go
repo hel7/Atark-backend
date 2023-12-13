@@ -27,3 +27,10 @@ func (s *AnimalService) GetByID(UserID, AnimalID int) (farmsage.Animal, error) {
 func (s *AnimalService) Delete(UserID, AnimalID int) error {
 	return s.repo.Delete(UserID, AnimalID)
 }
+func (s *AnimalService) Update(AnimalID int, input farmsage.UpdateAnimalInput) error {
+	if err := input.Validate(); err != nil {
+		return err
+	}
+
+	return s.repo.Update(AnimalID, input)
+}

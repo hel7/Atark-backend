@@ -24,3 +24,13 @@ func (s *AdminService) GetUserByID(userID int) (farmsage.User, error) {
 func (s *AdminService) GetAllUsers() ([]farmsage.User, error) {
 	return s.repo.GetAllUsers()
 }
+func (s *AdminService) Delete(UserID int) error {
+	return s.repo.Delete(UserID)
+}
+func (s *AdminService) UpdateUser(UserID int, input farmsage.UpdateUserInput) error {
+	if err := input.Validate(); err != nil {
+		return err
+	}
+
+	return s.repo.UpdateUser(UserID, input)
+}

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/hel7/Atark-backend"
 	"github.com/jmoiron/sqlx"
+	"github.com/sirupsen/logrus"
+	"strings"
 )
 
 type AnimalsMysql struct {
@@ -33,8 +35,8 @@ func (r *AnimalsMysql) Create(UserID int, animal farmsage.Animal) (int, error) {
 		return 0, err
 	}
 
-	linkAnimalQuery := "INSERT INTO Farm (UserID, AnimalID, FarmName) VALUES (?, ?, ?)"
-	_, err = tx.Exec(linkAnimalQuery, UserID, animalID, "FarmName")
+	linkAnimalQuery := "INSERT INTO FarmAnimal (FarmID, AnimalID) VALUES (?, ?)"
+	_, err = tx.Exec(linkAnimalQuery, UserID, animalID)
 	if err != nil {
 		tx.Rollback()
 		return 0, err
@@ -51,29 +53,82 @@ func (r *AnimalsMysql) Create(UserID int, animal farmsage.Animal) (int, error) {
 
 func (r *AnimalsMysql) GetAll(UserID int) ([]farmsage.Animal, error) {
 	var animals []farmsage.Animal
-	query := fmt.Sprintf("SELECT Animal.AnimalID, Animal.AnimalName, Animal.Number, " +
-		"Animal.DateOfBirth, Animal.Sex, Animal.Age, Animal.MedicalInfo " +
-		"FROM Animal " +
-		"WHERE Animal.AnimalID IN ( " +
-		"SELECT Farm.AnimalID " +
-		"FROM Farm WHERE Farm.UserID = ?)")
+	query := "SELECT a.AnimalID, a.AnimalName, a.Number, a.DateOfBirth, a.Sex, a.Age, a.MedicalInfo, f.FarmName " +
+		"FROM Animal AS a " +
+		"JOIN FarmAnimal AS fa ON fa.AnimalID = a.AnimalID " +
+		"JOIN Farm AS f ON f.FarmID = fa.FarmID " +
+		"WHERE f.UserID = ?"
 	err := r.db.Select(&animals, query, UserID)
 	return animals, err
 }
 
 func (r *AnimalsMysql) GetByID(UserID, AnimalID int) (farmsage.Animal, error) {
 	var animal farmsage.Animal
-	query := fmt.Sprintf("SELECT Animal.AnimalID, Animal.AnimalName, Animal.Number, " +
-		"Animal.DateOfBirth, Animal.Sex, Animal.Age, Animal.MedicalInfo " +
-		"FROM Animal " +
-		"INNER JOIN Farm ON Farm.AnimalID = Animal.AnimalID " +
-		"WHERE Farm.UserID = ? AND Farm.AnimalID = ?")
-
+	query := "SELECT a.AnimalID, a.AnimalName, a.Number, a.DateOfBirth, a.Sex, a.Age, a.MedicalInfo, f.FarmName " +
+		"FROM Animal AS a " +
+		"JOIN FarmAnimal AS fa ON fa.AnimalID = a.AnimalID " +
+		"JOIN Farm AS f ON f.FarmID = fa.FarmID " +
+		"WHERE f.UserID = ? AND a.AnimalID = ?"
 	err := r.db.Get(&animal, query, UserID, AnimalID)
 	return animal, err
 }
+
 func (r *AnimalsMysql) Delete(UserID, AnimalID int) error {
-	query := fmt.Sprintf("DELETE FROM %s WHERE AnimalID = ? AND EXISTS (SELECT 1 FROM Farm WHERE AnimalID = ? AND UserID = ?)", animalsTable)
-	_, err := r.db.Exec(query, AnimalID, AnimalID, UserID)
+	var farmID int
+	err := r.db.Get(&farmID, "SELECT FarmID FROM FarmAnimal WHERE AnimalID = ?", AnimalID)
+	if err != nil {
+		return err
+	}
+
+	_, err = r.db.Exec("DELETE FROM FarmAnimal WHERE AnimalID = ? AND FarmID = ?", AnimalID, farmID)
+	if err != nil {
+		return err
+	}
+
+	_, err = r.db.Exec("DELETE FROM Animal WHERE AnimalID = ?", AnimalID)
+	return err
+}
+
+func (r *AnimalsMysql) Update(AnimalID int, input farmsage.UpdateAnimalInput) error {
+	if err := input.Validate(); err != nil {
+		return err
+	}
+
+	setValues := make([]string, 0)
+	args := make([]interface{}, 0)
+
+	if input.AnimalName != nil {
+		setValues = append(setValues, "AnimalName=?")
+		args = append(args, *input.AnimalName)
+	}
+	if input.Number != nil {
+		setValues = append(setValues, "Number=?")
+		args = append(args, *input.Number)
+	}
+	if input.DateOfBirth != nil {
+		setValues = append(setValues, "DateOfBirth=?")
+		args = append(args, *input.DateOfBirth)
+	}
+	if input.Sex != nil {
+		setValues = append(setValues, "Sex=?")
+		args = append(args, *input.Sex)
+	}
+	if input.Age != nil {
+		setValues = append(setValues, "Age=?")
+		args = append(args, *input.Age)
+	}
+	if input.MedicalInfo != nil {
+		setValues = append(setValues, "MedicalInfo=?")
+		args = append(args, *input.MedicalInfo)
+	}
+
+	setQuery := strings.Join(setValues, ", ")
+	query := fmt.Sprintf("UPDATE %s SET %s WHERE AnimalID=?", animalsTable, setQuery)
+
+	args = append(args, AnimalID)
+	logrus.Debugf("updateQuery: %s", query)
+	logrus.Debugf("args: %v", args)
+
+	_, err := r.db.Exec(query, args...)
 	return err
 }

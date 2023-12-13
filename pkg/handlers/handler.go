@@ -33,19 +33,21 @@ func (h *Handlers) InitRoutes() *gin.Engine {
 
 		farms := api.Group("/farms/:farmID")
 		{
-			api.GET("/feeds", h.getFeedsOnFarm)
-			api.POST("/feeds", h.addFeedToFarm)
-			api.DELETE("/feeds/:feedID", h.removeFeedFromFarm)
+			farms.GET("/feeds", h.getFeedsOnFarm)
+			farms.POST("/feeds", h.addFeedToFarm)
+			farms.PUT("/feeds/:feedID", h.updateFeed)
+			farms.DELETE("/feeds/:feedID", h.removeFeedFromFarm)
 
 			farms.GET("/animals", h.getAnimalsOnFarm)
 			farms.POST("/animals", h.addAnimalToFarm)
 			farms.GET("/animals/:animalID", h.getAnimalByID)
+			farms.PUT("/animals/:animalID", h.updateAnimal)
 			farms.DELETE("/animals/:animalID", h.removeAnimalFromFarm)
 
 			farms.POST("/animals/:animalID/feeds/:feedID/", h.addAnimalFeedSchedule)
 			farms.DELETE("/animals/:animalID/schedule/:scheduleID", h.deleteFeedingSchedule)
-			farms.PUT("/animals/:animalID/feeds/:feedID/", h.updateAnimalFeedSchedule)
-			farms.GET("/animals/:animalID/feeds/:feedID/", h.getAnimalFeedSchedule)
+			farms.PUT("/animals/:animalID/schedule/:scheduleID/", h.updateAnimalFeedSchedule)
+			farms.GET("/animals/:animalID/schedule/:scheduleID/", h.getAnimalFeedSchedule)
 		}
 
 		analytics := api.Group("/analytics")
@@ -60,9 +62,9 @@ func (h *Handlers) InitRoutes() *gin.Engine {
 			{
 				users.GET("/", h.getUsers)
 				users.POST("/", h.createUser)
-				users.GET("/:UserID", h.getUserByID)
-				users.PUT("/:UserID", h.updateUser)
-				users.DELETE("/:UserID", h.deleteUser)
+				users.GET("/:userID", h.getUserByID)
+				users.PUT("/:userID", h.updateUser)
+				users.DELETE("/:userID", h.deleteUser)
 			}
 
 			data := admin.Group("/data")

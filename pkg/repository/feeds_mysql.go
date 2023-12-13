@@ -1,8 +1,11 @@
 package repository
 
 import (
+	"fmt"
 	"github.com/hel7/Atark-backend"
 	"github.com/jmoiron/sqlx"
+	"github.com/sirupsen/logrus"
+	"strings"
 )
 
 type FeedsMysql struct {
@@ -53,5 +56,30 @@ func (r *FeedsMysql) GetAll() ([]farmsage.Feed, error) {
 func (r *FeedsMysql) Delete(feedID int) error {
 	query := "DELETE FROM Feed WHERE FeedID = ?"
 	_, err := r.db.Exec(query, feedID)
+	return err
+}
+
+func (r *FeedsMysql) Update(feedID int, input farmsage.UpdateFeedInput) error {
+	setValues := make([]string, 0)
+	args := make([]interface{}, 0)
+
+	if input.FeedName != nil {
+		setValues = append(setValues, "FeedName=?")
+		args = append(args, *input.FeedName)
+	}
+	if input.Quantity != nil {
+		setValues = append(setValues, "Quantity=?")
+		args = append(args, *input.Quantity)
+	}
+
+	setQuery := strings.Join(setValues, ", ")
+
+	query := fmt.Sprintf("UPDATE %s SET %s WHERE FeedID=?", feedsTable, setQuery)
+
+	args = append(args, feedID)
+	logrus.Debugf("updateQuery: %s", query)
+	logrus.Debugf("args: %v", args)
+
+	_, err := r.db.Exec(query, args...)
 	return err
 }

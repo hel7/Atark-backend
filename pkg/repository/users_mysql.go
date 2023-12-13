@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"github.com/hel7/Atark-backend"
 	"github.com/jmoiron/sqlx"
+	"github.com/sirupsen/logrus"
 	"log"
+	"strings"
 )
 
 type UserMysql struct {
@@ -57,6 +59,49 @@ func (r *UserMysql) GetAllUsers() ([]farmsage.User, error) {
 	}
 	return users, err
 }
+
+func (r *UserMysql) Delete(UserID int) error {
+	query := fmt.Sprintf("DELETE FROM %s WHERE UserID = ? ", usersTable)
+	_, err := r.db.Exec(query, UserID)
+	return err
+}
+func (r *UserMysql) UpdateUser(UserID int, input farmsage.UpdateUserInput) error {
+	if err := input.Validate(); err != nil {
+		return err
+	}
+
+	setValues := make([]string, 0)
+	args := make([]interface{}, 0)
+
+	if input.Username != nil {
+		setValues = append(setValues, "Username=?")
+		args = append(args, *input.Username)
+	}
+	if input.Email != nil {
+		setValues = append(setValues, "Email=?")
+		args = append(args, *input.Email)
+	}
+	if input.Password != nil {
+		setValues = append(setValues, "Password=?")
+		args = append(args, *input.Password)
+	}
+	if input.Role != nil {
+		setValues = append(setValues, "Role=?")
+		args = append(args, *input.Role)
+	}
+
+	setQuery := strings.Join(setValues, ", ")
+
+	query := fmt.Sprintf("UPDATE %s SET %s WHERE UserID=?", usersTable, setQuery)
+
+	args = append(args, UserID)
+	logrus.Debugf("updateQuery: %s", query)
+	logrus.Debugf("args: %v", args)
+
+	_, err := r.db.Exec(query, args...)
+	return err
+}
+
 func generatePasswordHash(password string) string {
 	hash := sha256.New()
 	hash.Write([]byte(password + salt))

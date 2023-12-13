@@ -96,7 +96,27 @@ func (h *Handlers) createFarm(c *gin.Context) {
 }
 
 func (h *Handlers) updateFarm(c *gin.Context) {
-
+	UserID, err := getUserID(c)
+	if err != nil {
+		return
+	}
+	id, err := strconv.Atoi(c.Param("farmID"))
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "Invalid id param")
+		return
+	}
+	var input farmsage.UpdateFarmInput
+	if err := c.BindJSON(&input); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+	if err := h.services.Farms.Update(UserID, id, input); err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+	c.JSON(http.StatusOK, statusResponse{
+		Status: "Ok",
+	})
 }
 
 func (h *Handlers) deleteFarm(c *gin.Context) {
@@ -121,7 +141,43 @@ func (h *Handlers) deleteFarm(c *gin.Context) {
 		Status: "Ok",
 	})
 }
+func (h *Handlers) addFeedToFarm(c *gin.Context) {
+	var feed farmsage.Feed
+	if err := c.ShouldBindJSON(&feed); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid input data")
+		return
+	}
 
+	createdFeedID, err := h.services.Feed.Create(feed)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, map[string]interface{}{
+		"FeedID": createdFeedID,
+	})
+}
+
+func (h *Handlers) removeFeedFromFarm(c *gin.Context) {
+
+	feedIDStr := c.Param("feedID")
+	feedID, err := strconv.Atoi(feedIDStr)
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "Invalid feed ID")
+		return
+	}
+
+	err = h.services.Feed.Delete(feedID)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, statusResponse{
+		Status: "Ok",
+	})
+}
 func (h *Handlers) getAnimalsOnFarm(c *gin.Context) {
 	farmIDStr := c.Param("farmID")
 	farmID, err := strconv.Atoi(farmIDStr)
@@ -208,7 +264,61 @@ func (h *Handlers) removeAnimalFromFarm(c *gin.Context) {
 		Status: "Ok",
 	})
 }
+func (h *Handlers) addAnimalFeedSchedule(c *gin.Context) {
+	var feedingSchedule farmsage.FeedingSchedule
+	if err := c.ShouldBindJSON(&feedingSchedule); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid input data")
+		return
+	}
 
+	createdFeedID, err := h.services.FeedingSchedule.Create(feedingSchedule)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, map[string]interface{}{
+		"FeedingScheduleID": createdFeedID,
+	})
+}
+
+func (h *Handlers) updateAnimalFeedSchedule(c *gin.Context) {
+	scheduleIDStr := c.Param("scheduleID")
+	scheduleID, err := strconv.Atoi(scheduleIDStr)
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "Invalid scheduleID")
+		return
+	}
+
+	var input farmsage.UpdateFeedingScheduleInput
+	if err := c.BindJSON(&input); err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+	err = h.services.FeedingSchedule.Update(scheduleID, input)
+
+	c.JSON(http.StatusOK, statusResponse{
+		Status: "Ok",
+	})
+}
+func (h *Handlers) getAnimalFeedSchedule(c *gin.Context) {
+	animalIDStr := c.Param("animalID")
+	animalID, err := strconv.Atoi(animalIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid animal ID"})
+		return
+	}
+
+	feedingSchedule, err := h.services.FeedingSchedule.GetByID(animalID)
+	if err != nil {
+		logrus.Error("Failed to get feeding schedule: ", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get feeding schedule"})
+		return
+	}
+
+	c.JSON(http.StatusOK, feedingSchedule)
+
+}
 func (h *Handlers) deleteFeedingSchedule(c *gin.Context) {
 	scheduleIDStr := c.Param("scheduleID")
 	scheduleID, err := strconv.Atoi(scheduleIDStr)
@@ -239,92 +349,11 @@ func (h *Handlers) getFeedsOnFarm(c *gin.Context) {
 	c.JSON(http.StatusOK, feeds)
 }
 
-func (h *Handlers) addFeedToFarm(c *gin.Context) {
-	var feed farmsage.Feed
-	if err := c.ShouldBindJSON(&feed); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "invalid input data")
-		return
-	}
-
-	createdFeedID, err := h.services.Feed.Create(feed)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	c.JSON(http.StatusOK, map[string]interface{}{
-		"FeedID": createdFeedID,
-	})
-}
-
-func (h *Handlers) removeFeedFromFarm(c *gin.Context) {
-
-	feedIDStr := c.Param("feedID")
-	feedID, err := strconv.Atoi(feedIDStr)
-	if err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "Invalid feed ID")
-		return
-	}
-
-	err = h.services.Feed.Delete(feedID)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	c.JSON(http.StatusOK, statusResponse{
-		Status: "Ok",
-	})
-}
-func (h *Handlers) addAnimalFeedSchedule(c *gin.Context) {
-	var feedingSchedule farmsage.FeedingSchedule
-	if err := c.ShouldBindJSON(&feedingSchedule); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "invalid input data")
-		return
-	}
-
-	createdFeedID, err := h.services.FeedingSchedule.Create(feedingSchedule)
-	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	c.JSON(http.StatusOK, map[string]interface{}{
-		"FeedingScheduleID": createdFeedID,
-	})
-}
-
-func (h *Handlers) updateAnimalFeedSchedule(c *gin.Context) {
-
-}
-func (h *Handlers) getAnimalFeedSchedule(c *gin.Context) {
-	animalIDStr := c.Param("animalID")
-	animalID, err := strconv.Atoi(animalIDStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid animal ID"})
-		return
-	}
-
-	feedingSchedule, err := h.services.FeedingSchedule.GetByID(animalID)
-	if err != nil {
-		logrus.Error("Failed to get feeding schedule: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get feeding schedule"})
-		return
-	}
-
-	c.JSON(http.StatusOK, feedingSchedule)
-
-}
-
 func (h *Handlers) getAnalytics(c *gin.Context) {
 
 }
 
 func (h *Handlers) getAnalyticsByDate(c *gin.Context) {
-
-}
-
-func (h *Handlers) updateAdminUser(c *gin.Context) {
 
 }
 
@@ -369,7 +398,7 @@ func (h *Handlers) createUser(c *gin.Context) {
 }
 
 func (h *Handlers) getUserByID(c *gin.Context) {
-	userIDStr := c.Param("UserID")
+	userIDStr := c.Param("userID")
 	userID, err := strconv.Atoi(userIDStr)
 	if err != nil {
 		newErrorResponse(c, http.StatusBadRequest, "Invalid UserID")
@@ -392,13 +421,101 @@ func (h *Handlers) getUserByID(c *gin.Context) {
 }
 
 func (h *Handlers) updateUser(c *gin.Context) {
+	userIDStr := c.Param("userID")
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "Invalid UserID")
+		return
+	}
 
+	var input farmsage.UpdateUserInput
+	if err := c.BindJSON(&input); err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	err = h.services.Admin.UpdateUser(userID, input)
+
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, statusResponse{
+		Status: "Ok",
+	})
 }
 
 func (h *Handlers) deleteUser(c *gin.Context) {
+	userIDStr := c.Param("userID")
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "Invalid UserID")
+		return
+	}
 
+	err = h.services.Admin.Delete(userID)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, statusResponse{
+		Status: "Ok",
+	})
 }
 
+func (h *Handlers) updateFeed(c *gin.Context) {
+	FeedID := c.Param("feedID")
+	id, err := strconv.Atoi(FeedID)
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "Invalid id param")
+		return
+	}
+
+	var input farmsage.UpdateFeedInput
+	if err := c.BindJSON(&input); err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	err = h.services.Feed.Update(id, input)
+
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, statusResponse{
+		Status: "Ok",
+	})
+}
+
+func (h *Handlers) updateAnimal(c *gin.Context) {
+	animalID := c.Param("animalID")
+	id, err := strconv.Atoi(animalID)
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	var input farmsage.UpdateAnimalInput
+	if err := c.BindJSON(&input); err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	err = h.services.Animals.Update(id, input)
+
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, statusResponse{
+		Status: "Ok",
+	})
+}
 func (h *Handlers) backupData(c *gin.Context) {
 
 }

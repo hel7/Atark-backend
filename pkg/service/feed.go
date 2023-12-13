@@ -23,3 +23,10 @@ func (s *FeedService) GetAll() ([]farmsage.Feed, error) {
 func (s *FeedService) Delete(FeedID int) error {
 	return s.repo.Delete(FeedID)
 }
+func (s *FeedService) Update(feedID int, input farmsage.UpdateFeedInput) error {
+	if err := input.Validate(); err != nil {
+		return err
+	}
+
+	return s.repo.Update(feedID, input)
+}
