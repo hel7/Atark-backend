@@ -1,14 +1,15 @@
 package main
 
 import (
-	farmsage "github.com/hel7/Atark-backend"
+	"os"
+
+	"github.com/hel7/Atark-backend"
 	"github.com/hel7/Atark-backend/pkg/handlers"
 	"github.com/hel7/Atark-backend/pkg/repository"
 	"github.com/hel7/Atark-backend/pkg/service"
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"os"
 )
 
 func main() {
@@ -33,17 +34,23 @@ func main() {
 		logrus.Fatalf("Failed to initialize db %s", err.Error())
 	}
 
-	repos := repository.NewRepository(db)
+	repos := repository.NewRepository(db, repository.Config{
+		Host:     viper.GetString("db.host"),
+		Port:     viper.GetString("db.port"),
+		Username: viper.GetString("db.username"),
+		Password: os.Getenv("DB_PASSWORD"),
+		Dbname:   viper.GetString("db.dbname"),
+	})
+
 	services := service.NewService(repos)
-	handlers := handlers.NewHandler(services)
+	handler := handlers.NewHandler(services)
 
 	srv := new(farmsage.Server)
 	logrus.Printf("Starting the server on port %s", viper.GetString("server.port"))
 
-	if err := srv.Run(viper.GetString("server.port"), handlers.InitRoutes()); err != nil {
+	if err := srv.Run(viper.GetString("server.port"), handler.InitRoutes()); err != nil {
 		logrus.Fatalf("error running server: %s", err.Error())
 	}
-
 }
 
 func initConfig() error {

@@ -32,7 +32,7 @@ CREATE TABLE Farm (
 CREATE TABLE Activity (
                           ActivityID INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
                           AnimalID INT UNSIGNED,
-                          ActivityType VARCHAR(255) NOT NULL, -- Поміняв ENUM на VARCHAR, оскільки ENUM має обмеження в MySQL, а тип VARCHAR дозволяє більше значень.
+                          ActivityType VARCHAR(255) NOT NULL,
                           StartTime TIME NOT NULL,
                           EndTime TIME NOT NULL,
                           Latitude INT NOT NULL,

@@ -4,8 +4,8 @@ import (
 	"github.com/gin-gonic/gin"
 	farmsage "github.com/hel7/Atark-backend"
 	"github.com/sirupsen/logrus"
-
 	"net/http"
+	"os"
 	"strconv"
 )
 
@@ -517,11 +517,41 @@ func (h *Handlers) updateAnimal(c *gin.Context) {
 	})
 }
 func (h *Handlers) backupData(c *gin.Context) {
+	backupPath := "backup.sql"
 
+	file, err := os.Create(backupPath)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to create backup file",
+		})
+		return
+	}
+	defer file.Close()
+
+	if err := h.services.Admin.BackupData(backupPath); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to backup data",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Data backup successful",
+	})
 }
-
 func (h *Handlers) restoreData(c *gin.Context) {
+	restorePath := "backup.sql"
 
+	if err := h.services.Admin.RestoreData(restorePath); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to restore data",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Data restore successful",
+	})
 }
 
 func (h *Handlers) exportData(c *gin.Context) {

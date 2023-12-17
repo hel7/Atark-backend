@@ -34,3 +34,19 @@ func (s *AdminService) UpdateUser(UserID int, input farmsage.UpdateUserInput) er
 
 	return s.repo.UpdateUser(UserID, input)
 }
+func (s *AdminService) BackupData(backupPath string) error {
+	err := s.repo.BackupData(backupPath)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+func (s *AdminService) RestoreData(backupPath string) error {
+	err := s.repo.RestoreData(backupPath)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

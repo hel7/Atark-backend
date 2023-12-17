@@ -1,26 +1,31 @@
 package repository
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"fmt"
 	"github.com/hel7/Atark-backend"
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
+	"io/ioutil"
 	"log"
+	"os"
+	"os/exec"
 	"strings"
 )
 
 type UserMysql struct {
-	db *sqlx.DB
+	db     *sqlx.DB
+	config Config
+}
+
+func NewUserMysql(db *sqlx.DB, config Config) *UserMysql {
+	return &UserMysql{db: db, config: config}
 }
 
 const (
 	salt = "dfjaklsjlk343298hkjha"
 )
-
-func NewUserMysql(db *sqlx.DB) *UserMysql {
-	return &UserMysql{db: db}
-}
 
 func (r *UserMysql) CreateUser(user farmsage.User) (int, error) {
 	hashedPassword := generatePasswordHash(user.Password)
@@ -100,6 +105,76 @@ func (r *UserMysql) UpdateUser(UserID int, input farmsage.UpdateUserInput) error
 
 	_, err := r.db.Exec(query, args...)
 	return err
+}
+func (r *UserMysql) BackupData(backupPath string) error {
+	cmd := exec.Command(
+		"docker",
+		"exec",
+		"farmsage-db",
+		"mysqldump",
+		"-u",
+		r.config.Username,
+		"-p"+r.config.Password,
+		r.config.Dbname,
+	)
+
+	outputFile, err := os.Create(backupPath)
+	if err != nil {
+		return fmt.Errorf("error creating backup file: %s", err)
+	}
+	defer outputFile.Close()
+
+	cmd.Stdout = outputFile
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("error running mysqldump: %s", err)
+	}
+
+	return nil
+}
+func (r *UserMysql) RestoreData(backupPath string) error {
+	backupPath = "backup.sql"
+
+	containerBackupPath := "/var/lib/mysql/backup.sql"
+	cmd := exec.Command(
+		"docker",
+		"cp",
+		backupPath,
+		"farmsage-db:"+containerBackupPath,
+	)
+	if err := cmd.Run(); err != nil {
+		logrus.Errorf("Failed to copy dump file to container: %s", err)
+		return err
+	}
+
+	dumpContent, err := ioutil.ReadFile(backupPath)
+	if err != nil {
+		logrus.Errorf("Failed to read dump file: %s", err)
+		return err
+	}
+
+	mysqlCmd := exec.Command(
+		"docker",
+		"exec",
+		"-i",
+		"farmsage-db",
+		"mysql",
+		"-u",
+		r.config.Username,
+		"-p"+r.config.Password,
+		r.config.Dbname,
+	)
+
+	mysqlCmd.Stdin = bytes.NewReader(dumpContent)
+	mysqlCmd.Stdout = os.Stdout
+	mysqlCmd.Stderr = os.Stderr
+
+	if err := mysqlCmd.Run(); err != nil {
+		logrus.Errorf("Failed to restore data in container: %s", err)
+		return err
+	}
+
+	return nil
 }
 
 func generatePasswordHash(password string) string {

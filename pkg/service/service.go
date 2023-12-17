@@ -46,10 +46,12 @@ type Analytics interface {
 
 type Admin interface {
 	GetUserByID(userID int) (farmsage.User, error)
-	GetAllUsers() ([]farmsage.User, error)
 	CreateUser(user farmsage.User) (int, error)
+	GetAllUsers() ([]farmsage.User, error)
 	Delete(UserID int) error
 	UpdateUser(UserID int, input farmsage.UpdateUserInput) error
+	BackupData(backupPath string) error
+	RestoreData(backupPath string) error
 }
 
 type Service struct {

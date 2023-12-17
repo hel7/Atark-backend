@@ -49,6 +49,8 @@ type Admin interface {
 	GetAllUsers() ([]farmsage.User, error)
 	Delete(UserID int) error
 	UpdateUser(UserID int, input farmsage.UpdateUserInput) error
+	BackupData(backupPath string) error
+	RestoreData(backupPath string) error
 }
 
 type Repository struct {
@@ -61,11 +63,11 @@ type Repository struct {
 	Admin
 }
 
-func NewRepository(db *sqlx.DB) *Repository {
+func NewRepository(db *sqlx.DB, config Config) *Repository {
 	return &Repository{
 		Authorization:   NewAuthMysql(db),
 		Farms:           NewFarmsMysql(db),
-		Admin:           NewUserMysql(db),
+		Admin:           NewUserMysql(db, config),
 		Animals:         NewAnimalsMysql(db),
 		Feed:            NewFeedsMysql(db),
 		FeedingSchedule: NewFeedingScheduleMysql(db),
