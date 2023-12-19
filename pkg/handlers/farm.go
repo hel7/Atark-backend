@@ -555,9 +555,32 @@ func (h *Handlers) restoreData(c *gin.Context) {
 }
 
 func (h *Handlers) exportData(c *gin.Context) {
+	exportPath := "export.xlsx"
 
+	if err := h.services.Admin.ExportData(exportPath); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to export data"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Data export successful"})
 }
-
 func (h *Handlers) importData(c *gin.Context) {
+	file, err := c.FormFile("file")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
+	uploadPath := file.Filename
+	if err := c.SaveUploadedFile(file, uploadPath); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to save file"})
+		return
+	}
+
+	if err := h.services.Admin.ImportData(uploadPath); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Data imported successfully"})
 }

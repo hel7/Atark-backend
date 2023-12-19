@@ -8,15 +8,15 @@ import (
 	"strings"
 )
 
-type FeedsMysql struct {
+type FeedMysql struct {
 	db *sqlx.DB
 }
 
-func NewFeedsMysql(db *sqlx.DB) *FeedsMysql {
-	return &FeedsMysql{db: db}
+func NewFeedsMysql(db *sqlx.DB) *FeedMysql {
+	return &FeedMysql{db: db}
 }
 
-func (r *FeedsMysql) Create(feed farmsage.Feed) (int, error) {
+func (r *FeedMysql) Create(feed farmsage.Feed) (int, error) {
 	tx, err := r.db.Beginx()
 	if err != nil {
 		return 0, err
@@ -43,7 +43,7 @@ func (r *FeedsMysql) Create(feed farmsage.Feed) (int, error) {
 	return int(feedID), nil
 }
 
-func (r *FeedsMysql) GetAll() ([]farmsage.Feed, error) {
+func (r *FeedMysql) GetAll() ([]farmsage.Feed, error) {
 	var feeds []farmsage.Feed
 	query := "SELECT * FROM Feed"
 	err := r.db.Select(&feeds, query)
@@ -53,13 +53,13 @@ func (r *FeedsMysql) GetAll() ([]farmsage.Feed, error) {
 	return feeds, nil
 }
 
-func (r *FeedsMysql) Delete(feedID int) error {
+func (r *FeedMysql) Delete(feedID int) error {
 	query := "DELETE FROM Feed WHERE FeedID = ?"
 	_, err := r.db.Exec(query, feedID)
 	return err
 }
 
-func (r *FeedsMysql) Update(feedID int, input farmsage.UpdateFeedInput) error {
+func (r *FeedMysql) Update(feedID int, input farmsage.UpdateFeedInput) error {
 	setValues := make([]string, 0)
 	args := make([]interface{}, 0)
 

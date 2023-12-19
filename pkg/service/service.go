@@ -6,6 +6,7 @@ import (
 )
 
 type Authorization interface {
+	CreateAdmin(user farmsage.User) (int, error)
 	CreateUser(user farmsage.User) (int, error)
 	GenerateToken(username, password string) (string, error)
 	ParseToken(token string) (int, error)
@@ -52,6 +53,8 @@ type Admin interface {
 	UpdateUser(UserID int, input farmsage.UpdateUserInput) error
 	BackupData(backupPath string) error
 	RestoreData(backupPath string) error
+	ExportData(exportPath string) error
+	ImportData(importPath string) error
 }
 
 type Service struct {

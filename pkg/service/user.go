@@ -50,3 +50,19 @@ func (s *AdminService) RestoreData(backupPath string) error {
 
 	return nil
 }
+func (s *AdminService) ExportData(exportPath string) error {
+	err := s.repo.ExportData(exportPath)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+func (s *AdminService) ImportData(importPath string) error {
+	err := s.repo.ImportData(importPath)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

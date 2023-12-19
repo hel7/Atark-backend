@@ -8,6 +8,7 @@ import (
 type Authorization interface {
 	CreateUser(user farmsage.User) (int, error)
 	GetUser(username, password string) (farmsage.User, error)
+	CreateAdmin(user farmsage.User) (int, error)
 }
 
 type Animals interface {
@@ -51,6 +52,8 @@ type Admin interface {
 	UpdateUser(UserID int, input farmsage.UpdateUserInput) error
 	BackupData(backupPath string) error
 	RestoreData(backupPath string) error
+	ExportData(exportPath string) error
+	ImportData(importPath string) error
 }
 
 type Repository struct {
@@ -66,10 +69,10 @@ type Repository struct {
 func NewRepository(db *sqlx.DB, config Config) *Repository {
 	return &Repository{
 		Authorization:   NewAuthMysql(db),
-		Farms:           NewFarmsMysql(db),
-		Admin:           NewUserMysql(db, config),
 		Animals:         NewAnimalsMysql(db),
+		Farms:           NewFarmsMysql(db),
 		Feed:            NewFeedsMysql(db),
 		FeedingSchedule: NewFeedingScheduleMysql(db),
+		Admin:           NewAdminMysql(db, config),
 	}
 }

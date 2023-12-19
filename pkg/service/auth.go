@@ -33,6 +33,10 @@ func (s *AuthService) CreateUser(user farmsage.User) (int, error) {
 	user.Password = generatePasswordHash(user.Password)
 	return s.repo.CreateUser(user)
 }
+func (s *AuthService) CreateAdmin(user farmsage.User) (int, error) {
+	user.Password = generatePasswordHash(user.Password)
+	return s.repo.CreateAdmin(user)
+}
 
 func (s *AuthService) GenerateToken(username, password string) (string, error) {
 	user, err := s.repo.GetUser(username, generatePasswordHash(password))

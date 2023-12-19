@@ -28,7 +28,20 @@ func (r *AuthMysql) CreateUser(user farmsage.User) (int, error) {
 
 	return int(id), nil
 }
+func (r *AuthMysql) CreateAdmin(user farmsage.User) (int, error) {
+	query := fmt.Sprintf("INSERT INTO %s (username, email, password, role) VALUES (?, ?, ?, 'Admin')", usersTable)
+	result, err := r.db.Exec(query, user.Username, user.Email, user.Password)
+	if err != nil {
+		return 0, err
+	}
 
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+
+	return int(id), nil
+}
 func (r *AuthMysql) GetUser(username, password string) (farmsage.User, error) {
 	var user farmsage.User
 	query := fmt.Sprintf("SELECT UserID FROM %s WHERE username=? and password=?", usersTable)

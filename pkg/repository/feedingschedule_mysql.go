@@ -6,15 +6,15 @@ import (
 	"strings"
 )
 
-type FeedingScheduleMysql struct {
+type FeedScheduleMysql struct {
 	db *sqlx.DB
 }
 
-func NewFeedingScheduleMysql(db *sqlx.DB) *FeedingScheduleMysql {
-	return &FeedingScheduleMysql{db: db}
+func NewFeedingScheduleMysql(db *sqlx.DB) *FeedScheduleMysql {
+	return &FeedScheduleMysql{db: db}
 }
 
-func (r *FeedingScheduleMysql) Create(feedingSchedule farmsage.FeedingSchedule) (int, error) {
+func (r *FeedScheduleMysql) Create(feedingSchedule farmsage.FeedingSchedule) (int, error) {
 	query := "INSERT INTO FeedingSchedule (AnimalID, FeedID, FeedingTime) VALUES (?, ?, UTC_TIMESTAMP())"
 	result, err := r.db.Exec(query, feedingSchedule.AnimalID, feedingSchedule.FeedID)
 	if err != nil {
@@ -29,7 +29,7 @@ func (r *FeedingScheduleMysql) Create(feedingSchedule farmsage.FeedingSchedule) 
 	return int(lastInsertID), nil
 }
 
-func (r *FeedingScheduleMysql) GetByID(animalID int) ([]farmsage.FeedingSchedule, error) {
+func (r *FeedScheduleMysql) GetByID(animalID int) ([]farmsage.FeedingSchedule, error) {
 	var feedingSchedules []farmsage.FeedingSchedule
 
 	query := "SELECT FeedingSchedule.ScheduleID,Animal.AnimalID, Feed.FeedID, Animal.AnimalName, Animal.Number, " +
@@ -43,12 +43,13 @@ func (r *FeedingScheduleMysql) GetByID(animalID int) ([]farmsage.FeedingSchedule
 	return feedingSchedules, err
 }
 
-func (r *FeedingScheduleMysql) Delete(scheduleID int) error {
+func (r *FeedScheduleMysql) Delete(scheduleID int) error {
 	query := "DELETE FROM FeedingSchedule WHERE ScheduleID = ?"
 	_, err := r.db.Exec(query, scheduleID)
 	return err
 }
-func (r *FeedingScheduleMysql) Update(scheduleID int, input farmsage.UpdateFeedingScheduleInput) error {
+
+func (r *FeedScheduleMysql) Update(scheduleID int, input farmsage.UpdateFeedingScheduleInput) error {
 	query := "UPDATE FeedingSchedule SET"
 
 	args := make([]interface{}, 0)
