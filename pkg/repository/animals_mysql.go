@@ -16,7 +16,7 @@ func NewAnimalsMysql(db *sqlx.DB) *AnimalsMysql {
 	return &AnimalsMysql{db: db}
 }
 
-func (r *AnimalsMysql) Create(UserID int, animal farmsage.Animal) (int, error) {
+func (r *AnimalsMysql) Create(FarmID int, animal farmsage.Animal) (int, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return 0, err
@@ -36,7 +36,7 @@ func (r *AnimalsMysql) Create(UserID int, animal farmsage.Animal) (int, error) {
 	}
 
 	linkAnimalQuery := "INSERT INTO FarmAnimal (FarmID, AnimalID) VALUES (?, ?)"
-	_, err = tx.Exec(linkAnimalQuery, UserID, animalID)
+	_, err = tx.Exec(linkAnimalQuery, FarmID, animalID)
 	if err != nil {
 		tx.Rollback()
 		return 0, err

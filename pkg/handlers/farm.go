@@ -15,8 +15,8 @@ type UserResponse struct {
 	Role     string `json:"role"`
 }
 type FarmResponse struct {
-	FarmID int    `json:"farmID"`
-	Name   string `json:"name"`
+	FarmID int    `json:"FarmID"`
+	Name   string `json:"FarmName"`
 }
 type AnimalResponse struct {
 	Name        string `json:"name"`

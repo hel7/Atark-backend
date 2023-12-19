@@ -55,9 +55,11 @@ CREATE TABLE FeedingSchedule (
                                  AnimalID INT UNSIGNED,
                                  FeedID INT UNSIGNED,
                                  FeedingTime TIME NOT NULL,
+                                 AllocatedQuantity INT NOT NULL,
                                  FOREIGN KEY (AnimalID) REFERENCES Animal(AnimalID) ON DELETE CASCADE,
                                  FOREIGN KEY (FeedID) REFERENCES Feed(FeedID) ON DELETE CASCADE
 );
+
 
 CREATE TABLE FarmAnimal (
                             FarmID INT UNSIGNED NOT NULL,

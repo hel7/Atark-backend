@@ -15,14 +15,43 @@ func NewFeedingScheduleMysql(db *sqlx.DB) *FeedScheduleMysql {
 }
 
 func (r *FeedScheduleMysql) Create(feedingSchedule farmsage.FeedingSchedule) (int, error) {
-	query := "INSERT INTO FeedingSchedule (AnimalID, FeedID, FeedingTime) VALUES (?, ?, UTC_TIMESTAMP())"
-	result, err := r.db.Exec(query, feedingSchedule.AnimalID, feedingSchedule.FeedID)
+	tx, err := r.db.Beginx()
 	if err != nil {
+		return 0, err
+	}
+
+	query := "INSERT INTO FeedingSchedule (AnimalID, FeedID, FeedingTime, AllocatedQuantity) VALUES (?, ?, ?,?)"
+	result, err := tx.Exec(query, feedingSchedule.AnimalID, feedingSchedule.FeedID, feedingSchedule.FeedingTime, feedingSchedule.AllocatedQuantity)
+	if err != nil {
+		tx.Rollback()
 		return 0, err
 	}
 
 	lastInsertID, err := result.LastInsertId()
 	if err != nil {
+		tx.Rollback()
+		return 0, err
+	}
+
+	getFeedQuery := "SELECT Quantity FROM Feed WHERE FeedID = ?"
+	var quantity int
+	err = tx.Get(&quantity, getFeedQuery, feedingSchedule.FeedID)
+	if err != nil {
+		tx.Rollback()
+		return 0, err
+	}
+
+	quantity -= feedingSchedule.AllocatedQuantity
+
+	updateFeedQuery := "UPDATE Feed SET Quantity = ? WHERE FeedID = ?"
+	_, err = tx.Exec(updateFeedQuery, quantity, feedingSchedule.FeedID)
+	if err != nil {
+		tx.Rollback()
+		return 0, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		tx.Rollback()
 		return 0, err
 	}
 
@@ -32,8 +61,8 @@ func (r *FeedScheduleMysql) Create(feedingSchedule farmsage.FeedingSchedule) (in
 func (r *FeedScheduleMysql) GetByID(animalID int) ([]farmsage.FeedingSchedule, error) {
 	var feedingSchedules []farmsage.FeedingSchedule
 
-	query := "SELECT FeedingSchedule.ScheduleID,Animal.AnimalID, Feed.FeedID, Animal.AnimalName, Animal.Number, " +
-		"Feed.FeedName, FeedingSchedule.FeedingTime " +
+	query := "SELECT FeedingSchedule.ScheduleID, Animal.AnimalID, Feed.FeedID, Animal.AnimalName, Animal.Number, " +
+		"Feed.FeedName, FeedingSchedule.FeedingTime, FeedingSchedule.AllocatedQuantity " +
 		"FROM FeedingSchedule " +
 		"INNER JOIN Animal ON FeedingSchedule.AnimalID = Animal.AnimalID " +
 		"INNER JOIN Feed ON FeedingSchedule.FeedID = Feed.FeedID " +

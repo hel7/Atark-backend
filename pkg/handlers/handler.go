@@ -48,7 +48,7 @@ func (h *Handlers) InitRoutes() *gin.Engine {
 			farms.POST("/animals/:animalID/feeds/:feedID/", h.addAnimalFeedSchedule)
 			farms.DELETE("/animals/:animalID/schedule/:scheduleID", h.deleteFeedingSchedule)
 			farms.PUT("/animals/:animalID/schedule/:scheduleID/", h.updateAnimalFeedSchedule)
-			farms.GET("/animals/:animalID/schedule/:scheduleID/", h.getAnimalFeedSchedule)
+			farms.GET("/animals/:animalID/schedule", h.getAnimalFeedSchedule)
 		}
 
 		analytics := api.Group("/analytics")

@@ -24,13 +24,14 @@ type Activity struct {
 }
 
 type FeedingSchedule struct {
-	ScheduleID   int    `json:"ScheduleID" db:"ScheduleID"`
-	AnimalID     int    `json:"AnimalID" db:"AnimalID"`
-	FeedID       int    `json:"FeedID" db:"FeedID"`
-	AnimalName   string `db:"AnimalName"`
-	AnimalNumber int    `db:"Number"`
-	FeedName     string `db:"FeedName"`
-	FeedingTime  string `json:"FeedingTime" db:"FeedingTime"`
+	ScheduleID        int    `json:"ScheduleID" db:"ScheduleID"`
+	AnimalID          int    `json:"AnimalID" db:"AnimalID"`
+	FeedID            int    `json:"FeedID" db:"FeedID"`
+	AnimalName        string `db:"AnimalName"`
+	AnimalNumber      int    `db:"Number"`
+	FeedName          string `db:"FeedName"`
+	FeedingTime       string `json:"FeedingTime" db:"FeedingTime"`
+	AllocatedQuantity int    `json:"AllocatedQuantity" db:"AllocatedQuantity"`
 }
 
 type Feed struct {
