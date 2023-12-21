@@ -55,36 +55,36 @@ func (r *AnimalsMysql) Create(FarmID int, animal farmsage.Animal) (int, error) {
 	return int(animalID), nil
 }
 
-func (r *AnimalsMysql) GetAll(UserID int) ([]farmsage.Animal, error) {
+func (r *AnimalsMysql) GetAll(FarmID int) ([]farmsage.Animal, error) {
 	var animals []farmsage.Animal
 	query := "SELECT a.AnimalID, a.AnimalName, a.Number, a.DateOfBirth, a.Sex, a.Age, a.MedicalInfo, f.FarmName " +
 		"FROM Animal AS a " +
 		"JOIN FarmAnimal AS fa ON fa.AnimalID = a.AnimalID " +
 		"JOIN Farm AS f ON f.FarmID = fa.FarmID " +
-		"WHERE f.UserID = ?"
-	err := r.db.Select(&animals, query, UserID)
+		"WHERE f.FarmID = ?"
+	err := r.db.Select(&animals, query, FarmID)
 	return animals, err
 }
 
-func (r *AnimalsMysql) GetByID(UserID, AnimalID int) (farmsage.Animal, error) {
+func (r *AnimalsMysql) GetByID(FarmID, AnimalID int) (farmsage.Animal, error) {
 	var animal farmsage.Animal
 	query := "SELECT a.AnimalID, a.AnimalName, a.Number, a.DateOfBirth, a.Sex, a.Age, a.MedicalInfo, f.FarmName " +
 		"FROM Animal AS a " +
 		"JOIN FarmAnimal AS fa ON fa.AnimalID = a.AnimalID " +
 		"JOIN Farm AS f ON f.FarmID = fa.FarmID " +
-		"WHERE f.UserID = ? AND a.AnimalID = ?"
-	err := r.db.Get(&animal, query, UserID, AnimalID)
+		"WHERE f.FarmID = ? AND a.AnimalID = ?"
+	err := r.db.Get(&animal, query, FarmID, AnimalID)
 	return animal, err
 }
 
-func (r *AnimalsMysql) Delete(UserID, AnimalID int) error {
+func (r *AnimalsMysql) Delete(FarmID, AnimalID int) error {
 	var farmID int
 	err := r.db.Get(&farmID, "SELECT FarmID FROM FarmAnimal WHERE AnimalID = ?", AnimalID)
 	if err != nil {
 		return err
 	}
 
-	_, err = r.db.Exec("DELETE FROM FarmAnimal WHERE AnimalID = ? AND FarmID = ?", AnimalID, farmID)
+	_, err = r.db.Exec("DELETE FROM FarmAnimal WHERE AnimalID = ? AND FarmID = ?", AnimalID, FarmID)
 	if err != nil {
 		return err
 	}

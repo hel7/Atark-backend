@@ -14,6 +14,12 @@ func NewAdminService(repo repository.Admin) *AdminService {
 }
 
 func (s *AdminService) CreateUser(user farmsage.User) (int, error) {
+	if err := user.ValidatePassword(); err != nil {
+		return 0, err
+	}
+	if err := user.ValidateEmail(); err != nil {
+		return 0, err
+	}
 	return s.repo.CreateUser(user)
 }
 
@@ -27,12 +33,18 @@ func (s *AdminService) GetAllUsers() ([]farmsage.User, error) {
 func (s *AdminService) Delete(UserID int) error {
 	return s.repo.Delete(UserID)
 }
-func (s *AdminService) UpdateUser(UserID int, input farmsage.UpdateUserInput) error {
+func (s *AdminService) UpdateUser(UserID int, input farmsage.UpdateUserInput, user farmsage.User) error {
 	if err := input.Validate(); err != nil {
 		return err
 	}
+	if err := user.ValidatePassword(); err != nil {
+		return err
+	}
+	if err := user.ValidateEmail(); err != nil {
+		return err
+	}
 
-	return s.repo.UpdateUser(UserID, input)
+	return s.repo.UpdateUser(UserID, input, user)
 }
 func (s *AdminService) BackupData(backupPath string) error {
 	err := s.repo.BackupData(backupPath)

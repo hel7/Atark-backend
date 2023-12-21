@@ -30,6 +30,12 @@ const (
 )
 
 func (r *AdminMysql) CreateUser(user farmsage.User) (int, error) {
+	if err := user.ValidateEmail(); err != nil {
+		return 0, err
+	}
+	if err := user.ValidatePassword(); err != nil {
+		return 0, err
+	}
 	checkQuery := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE email=? OR username=?", usersTable)
 	var count int
 	err := r.db.Get(&count, checkQuery, user.Email, user.Username)
@@ -88,7 +94,13 @@ func (r *AdminMysql) Delete(UserID int) error {
 	return err
 }
 
-func (r *AdminMysql) UpdateUser(UserID int, input farmsage.UpdateUserInput) error {
+func (r *AdminMysql) UpdateUser(UserID int, input farmsage.UpdateUserInput, user farmsage.User) error {
+	if err := user.ValidateEmail(); err != nil {
+		return err
+	}
+	if err := user.ValidatePassword(); err != nil {
+		return err
+	}
 	if err := input.Validate(); err != nil {
 		return err
 	}
@@ -112,7 +124,6 @@ func (r *AdminMysql) UpdateUser(UserID int, input farmsage.UpdateUserInput) erro
 		args = append(args, *input.Username)
 	}
 	if input.Email != nil {
-		// Перевірка, чи існує користувач з такою ж поштою
 		checkEmailQuery := "SELECT COUNT(*) FROM User WHERE Email=? AND UserID <> ?"
 		var emailCount int
 		err := r.db.Get(&emailCount, checkEmailQuery, *input.Email, UserID)

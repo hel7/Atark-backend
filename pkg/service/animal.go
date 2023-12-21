@@ -13,19 +13,19 @@ func NewAnimalService(repo repository.Animals) *AnimalService {
 	return &AnimalService{repo: repo}
 }
 
-func (s *AnimalService) Create(UserID int, animal farmsage.Animal) (int, error) {
-	return s.repo.Create(UserID, animal)
+func (s *AnimalService) Create(FarmID int, animal farmsage.Animal) (int, error) {
+	return s.repo.Create(FarmID, animal)
 }
 
-func (s *AnimalService) GetAll(UserID int) ([]farmsage.Animal, error) {
-	return s.repo.GetAll(UserID)
+func (s *AnimalService) GetAll(FarmID int) ([]farmsage.Animal, error) {
+	return s.repo.GetAll(FarmID)
 }
 
-func (s *AnimalService) GetByID(UserID, AnimalID int) (farmsage.Animal, error) {
-	return s.repo.GetByID(UserID, AnimalID)
+func (s *AnimalService) GetByID(FarmID, AnimalID int) (farmsage.Animal, error) {
+	return s.repo.GetByID(FarmID, AnimalID)
 }
-func (s *AnimalService) Delete(UserID, AnimalID int) error {
-	return s.repo.Delete(UserID, AnimalID)
+func (s *AnimalService) Delete(FarmID, AnimalID int) error {
+	return s.repo.Delete(FarmID, AnimalID)
 }
 func (s *AnimalService) Update(AnimalID int, input farmsage.UpdateAnimalInput) error {
 	if err := input.Validate(); err != nil {

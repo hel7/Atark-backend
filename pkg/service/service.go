@@ -13,10 +13,10 @@ type Authorization interface {
 }
 
 type Animals interface {
-	Create(UserID int, animal farmsage.Animal) (int, error)
-	GetAll(UserID int) ([]farmsage.Animal, error)
-	GetByID(UserID, AnimalID int) (farmsage.Animal, error)
-	Delete(UserID, AnimalID int) error
+	Create(FarmID int, animal farmsage.Animal) (int, error)
+	GetAll(FarmID int) ([]farmsage.Animal, error)
+	GetByID(FarmID, AnimalID int) (farmsage.Animal, error)
+	Delete(FarmID, AnimalID int) error
 	Update(AnimalID int, input farmsage.UpdateAnimalInput) error
 }
 
@@ -50,7 +50,7 @@ type Admin interface {
 	CreateUser(user farmsage.User) (int, error)
 	GetAllUsers() ([]farmsage.User, error)
 	Delete(UserID int) error
-	UpdateUser(UserID int, input farmsage.UpdateUserInput) error
+	UpdateUser(UserID int, input farmsage.UpdateUserInput, user farmsage.User) error
 	BackupData(backupPath string) error
 	RestoreData(backupPath string) error
 	ExportData(exportPath string) error

@@ -10,24 +10,6 @@ import (
 	"strings"
 )
 
-type UserResponse struct {
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Role     string `json:"role"`
-}
-type FarmResponse struct {
-	FarmID int    `json:"FarmID"`
-	Name   string `json:"FarmName"`
-}
-type AnimalResponse struct {
-	Name        string `json:"name"`
-	Number      int    `json:"number"`
-	DateOfBirth string `json:"dateOfBirth"`
-	Sex         string `json:"sex"`
-	Age         int    `json:"age"`
-	MedicalInfo string `json:"medicalInfo"`
-}
-
 func (h *Handlers) getUserFarms(c *gin.Context) {
 	UserID, err := getUserID(c)
 	if err != nil {
@@ -39,16 +21,7 @@ func (h *Handlers) getUserFarms(c *gin.Context) {
 		return
 	}
 
-	var farmsResponse []FarmResponse
-	for _, farm := range farms {
-		farmResponse := FarmResponse{
-			FarmID: farm.FarmID,
-			Name:   farm.FarmName,
-		}
-		farmsResponse = append(farmsResponse, farmResponse)
-	}
-
-	c.JSON(http.StatusOK, gin.H{"farms": farmsResponse})
+	c.JSON(http.StatusOK, gin.H{"farms": farms})
 }
 
 func (h *Handlers) getFarmByID(c *gin.Context) {
@@ -67,12 +40,7 @@ func (h *Handlers) getFarmByID(c *gin.Context) {
 		return
 	}
 
-	farmResponse := FarmResponse{
-		FarmID: farm.FarmID,
-		Name:   farm.FarmName,
-	}
-
-	c.JSON(http.StatusOK, farmResponse)
+	c.JSON(http.StatusOK, farm)
 }
 
 func (h *Handlers) createFarm(c *gin.Context) {
@@ -208,23 +176,12 @@ func (h *Handlers) getAnimalsOnFarm(c *gin.Context) {
 		return
 	}
 
-	var animalsResponse []AnimalResponse
-	for _, animal := range animals {
-		animalResponse := AnimalResponse{
-			Name:        animal.AnimalName,
-			Number:      animal.Number,
-			DateOfBirth: animal.DateOfBirth,
-			Sex:         animal.Sex,
-			Age:         animal.Age,
-			MedicalInfo: animal.MedicalInfo,
-		}
-		animalsResponse = append(animalsResponse, animalResponse)
-	}
-
-	c.JSON(http.StatusOK, gin.H{"animals": animalsResponse})
+	c.JSON(http.StatusOK, gin.H{"animals": animals})
 }
+
 func (h *Handlers) getAnimalByID(c *gin.Context) {
-	UserID, err := getUserID(c)
+	farmIDStr := c.Param("farmID")
+	farmID, err := strconv.Atoi(farmIDStr)
 	animalIDStr := c.Param("animalID")
 	animalID, err := strconv.Atoi(animalIDStr)
 	if err != nil {
@@ -232,7 +189,7 @@ func (h *Handlers) getAnimalByID(c *gin.Context) {
 		return
 	}
 
-	animal, err := h.services.Animals.GetByID(UserID, animalID)
+	animal, err := h.services.Animals.GetByID(farmID, animalID)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
@@ -241,9 +198,10 @@ func (h *Handlers) getAnimalByID(c *gin.Context) {
 	c.JSON(http.StatusOK, animal)
 }
 func (h *Handlers) addAnimalToFarm(c *gin.Context) {
-	UserID, err := getUserID(c)
+	farmIDStr := c.Param("farmID")
+	farmID, err := strconv.Atoi(farmIDStr)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, http.StatusBadRequest, "Invalid farm ID")
 		return
 	}
 
@@ -253,7 +211,7 @@ func (h *Handlers) addAnimalToFarm(c *gin.Context) {
 		return
 	}
 
-	createdAnimalID, err := h.services.Animals.Create(UserID, input)
+	createdAnimalID, err := h.services.Animals.Create(farmID, input)
 	if err != nil {
 		if strings.Contains(err.Error(), "duplicate entry for Animal.Number") {
 			newErrorResponse(c, http.StatusBadRequest, "Duplicate entry for Animal.Number")
@@ -269,7 +227,8 @@ func (h *Handlers) addAnimalToFarm(c *gin.Context) {
 }
 
 func (h *Handlers) removeAnimalFromFarm(c *gin.Context) {
-	UserID, err := getUserID(c)
+	farmIDStr := c.Param("farmID")
+	farmID, err := strconv.Atoi(farmIDStr)
 	animalIDStr := c.Param("animalID")
 	animalID, err := strconv.Atoi(animalIDStr)
 	if err != nil {
@@ -277,7 +236,7 @@ func (h *Handlers) removeAnimalFromFarm(c *gin.Context) {
 		return
 	}
 
-	err = h.services.Animals.Delete(UserID, animalID)
+	err = h.services.Animals.Delete(farmID, animalID)
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
@@ -379,17 +338,7 @@ func (h *Handlers) getUsers(c *gin.Context) {
 		return
 	}
 
-	var usersResponse []UserResponse
-	for _, user := range users {
-		userResponse := UserResponse{
-			Username: user.Username,
-			Email:    user.Email,
-			Role:     user.Role,
-		}
-		usersResponse = append(usersResponse, userResponse)
-	}
-
-	c.JSON(http.StatusOK, gin.H{"users": usersResponse})
+	c.JSON(http.StatusOK, gin.H{"users": users})
 }
 
 func (h *Handlers) createUser(c *gin.Context) {
@@ -422,13 +371,7 @@ func (h *Handlers) getUserByID(c *gin.Context) {
 		return
 	}
 
-	userResponse := UserResponse{
-		Username: user.Username,
-		Email:    user.Email,
-		Role:     user.Role,
-	}
-
-	c.JSON(http.StatusOK, userResponse)
+	c.JSON(http.StatusOK, user)
 }
 
 func (h *Handlers) updateUser(c *gin.Context) {
@@ -440,12 +383,13 @@ func (h *Handlers) updateUser(c *gin.Context) {
 	}
 
 	var input farmsage.UpdateUserInput
+	var userInput farmsage.User
 	if err := c.BindJSON(&input); err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	err = h.services.Admin.UpdateUser(userID, input)
+	err = h.services.Admin.UpdateUser(userID, input, userInput)
 
 	if err != nil {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
