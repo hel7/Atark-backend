@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	farmsage "github.com/hel7/Atark-backend"
 	"net/http"
+	"strings"
 )
 
 type registrationInput struct {
@@ -18,11 +19,18 @@ func (h *Handlers) registerUser(c *gin.Context) {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
+
 	id, err := h.services.Authorization.CreateUser(input)
 	if err != nil {
+		if strings.Contains(err.Error(), "Duplicate entry") {
+			newErrorResponse(c, http.StatusConflict, "User with this email or username already exists")
+			return
+		}
+
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
+
 	c.JSON(http.StatusOK, map[string]interface{}{
 		"UserID": id,
 	})

@@ -51,12 +51,6 @@ func (h *Handlers) InitRoutes() *gin.Engine {
 			farms.GET("/animals/:animalID/schedule", h.getAnimalFeedSchedule)
 		}
 
-		analytics := api.Group("/analytics")
-		{
-			analytics.GET("/", h.getAnalytics)
-			analytics.GET("/:date", h.getAnalyticsByDate)
-		}
-
 		admin := api.Group("/admin", h.adminRequired)
 		{
 			users := admin.Group("/users")

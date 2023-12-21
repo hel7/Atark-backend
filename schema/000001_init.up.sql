@@ -8,7 +8,7 @@ CREATE TABLE User (
 
 CREATE TABLE Feed (
                       FeedID INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-                      FeedName VARCHAR(255) NOT NULL,
+                      FeedName VARCHAR(255) UNIQUE NOT NULL,
                       Quantity INT NOT NULL
 );
 
@@ -25,7 +25,7 @@ CREATE TABLE Animal (
 CREATE TABLE Farm (
                       FarmID INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
                       UserID INT UNSIGNED NOT NULL,
-                      FarmName VARCHAR(255) NOT NULL,
+                      FarmName VARCHAR(255) UNIQUE NOT NULL,
                       FOREIGN KEY (UserID) REFERENCES User(UserID) ON DELETE CASCADE
 );
 
@@ -55,6 +55,7 @@ CREATE TABLE FeedingSchedule (
                                  AnimalID INT UNSIGNED,
                                  FeedID INT UNSIGNED,
                                  FeedingTime TIME NOT NULL,
+                                 FeedingDate DATE NOT NULL,
                                  AllocatedQuantity INT NOT NULL,
                                  FOREIGN KEY (AnimalID) REFERENCES Animal(AnimalID) ON DELETE CASCADE,
                                  FOREIGN KEY (FeedID) REFERENCES Feed(FeedID) ON DELETE CASCADE

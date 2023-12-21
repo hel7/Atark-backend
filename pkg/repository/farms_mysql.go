@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+	"github.com/go-sql-driver/mysql"
 	farmsage "github.com/hel7/Atark-backend"
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
@@ -26,6 +27,13 @@ func (r *FarmsMysql) Create(UserID int, farm farmsage.Farm) (int, error) {
 	res, err := tx.Exec(createFarmQuery, UserID, farm.FarmName)
 	if err != nil {
 		tx.Rollback()
+
+		// Проверяем, является ли ошибка ошибкой дубликата уникального ключа
+		mysqlErr, ok := err.(*mysql.MySQLError)
+		if ok && mysqlErr.Number == 1062 {
+			return 0, fmt.Errorf("farm with this name already exists")
+		}
+
 		return 0, err
 	}
 
@@ -81,5 +89,12 @@ func (r *FarmsMysql) Update(UserID, id int, input farmsage.UpdateFarmInput) erro
 	logrus.Debugf("args: %v", args)
 
 	_, err := r.db.Exec(query, args...)
-	return err
+	if err != nil {
+		mysqlErr, ok := err.(*mysql.MySQLError)
+		if ok && mysqlErr.Number == 1062 {
+			return fmt.Errorf("farm with this name already exists")
+		}
+		return err
+	}
+	return nil
 }

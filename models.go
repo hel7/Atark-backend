@@ -31,6 +31,7 @@ type FeedingSchedule struct {
 	AnimalNumber      int    `db:"Number"`
 	FeedName          string `db:"FeedName"`
 	FeedingTime       string `json:"FeedingTime" db:"FeedingTime"`
+	FeedingDate       string `json:"FeedingDate" db:"FeedingDate"`
 	AllocatedQuantity int    `json:"AllocatedQuantity" db:"AllocatedQuantity"`
 }
 
@@ -76,13 +77,15 @@ type UpdateAnimalInput struct {
 	FarmName    *string `json:"FarmName"`
 }
 type UpdateFeedingScheduleInput struct {
-	ScheduleID   *int    `json:"ScheduleID"`
-	AnimalID     *int    `json:"AnimalID"`
-	FeedID       *int    `json:"FeedID"`
-	AnimalName   *string `json:"AnimalName"`
-	AnimalNumber *int    `json:"Number"`
-	FeedName     *string `json:"FeedName"`
-	FeedingTime  *string `json:"FeedingTime"`
+	ScheduleID        *int    `json:"ScheduleID"`
+	AnimalID          *int    `json:"AnimalID"`
+	FeedID            *int    `json:"FeedID"`
+	AnimalName        *string `json:"AnimalName"`
+	AnimalNumber      *int    `json:"Number"`
+	FeedName          *string `json:"FeedName"`
+	FeedingTime       *string `json:"FeedingTime"`
+	FeedingDate       *string `json:"FeedingDate"`
+	AllocatedQuantity int     `json:"AllocatedQuantity" db:"AllocatedQuantity"`
 }
 
 func (i UpdateFarmInput) Validate() error {

@@ -26,6 +26,9 @@ func (r *FeedMysql) Create(feed farmsage.Feed) (int, error) {
 	res, err := tx.Exec(createFeedQuery, feed.FeedName, feed.Quantity)
 	if err != nil {
 		tx.Rollback()
+		if strings.Contains(err.Error(), "Duplicate entry") {
+			return 0, fmt.Errorf("feed with this name already exists")
+		}
 		return 0, err
 	}
 
@@ -81,5 +84,12 @@ func (r *FeedMysql) Update(feedID int, input farmsage.UpdateFeedInput) error {
 	logrus.Debugf("args: %v", args)
 
 	_, err := r.db.Exec(query, args...)
-	return err
+	if err != nil {
+		if strings.Contains(err.Error(), "Duplicate entry") {
+			return fmt.Errorf("feed with this name already exists")
+		}
+		return err
+	}
+
+	return nil
 }

@@ -20,8 +20,9 @@ func (r *FeedScheduleMysql) Create(feedingSchedule farmsage.FeedingSchedule) (in
 		return 0, err
 	}
 
-	query := "INSERT INTO FeedingSchedule (AnimalID, FeedID, FeedingTime, AllocatedQuantity) VALUES (?, ?, ?,?)"
-	result, err := tx.Exec(query, feedingSchedule.AnimalID, feedingSchedule.FeedID, feedingSchedule.FeedingTime, feedingSchedule.AllocatedQuantity)
+	query := "INSERT INTO FeedingSchedule (AnimalID, FeedID, FeedingTime, FeedingDate, AllocatedQuantity) VALUES (?, ?, NOW(), CURDATE(), ?)"
+	result, err := tx.Exec(query, feedingSchedule.AnimalID, feedingSchedule.FeedID, feedingSchedule.AllocatedQuantity)
+
 	if err != nil {
 		tx.Rollback()
 		return 0, err
@@ -62,7 +63,7 @@ func (r *FeedScheduleMysql) GetByID(animalID int) ([]farmsage.FeedingSchedule, e
 	var feedingSchedules []farmsage.FeedingSchedule
 
 	query := "SELECT FeedingSchedule.ScheduleID, Animal.AnimalID, Feed.FeedID, Animal.AnimalName, Animal.Number, " +
-		"Feed.FeedName, FeedingSchedule.FeedingTime, FeedingSchedule.AllocatedQuantity " +
+		"Feed.FeedName, FeedingSchedule.FeedingTime, FeedingSchedule.FeedingDate, FeedingSchedule.AllocatedQuantity " +
 		"FROM FeedingSchedule " +
 		"INNER JOIN Animal ON FeedingSchedule.AnimalID = Animal.AnimalID " +
 		"INNER JOIN Feed ON FeedingSchedule.FeedID = Feed.FeedID " +
@@ -99,7 +100,16 @@ func (r *FeedScheduleMysql) Update(scheduleID int, input farmsage.UpdateFeedingS
 	} else {
 		query += " FeedingTime = NOW(),"
 	}
-
+	if input.FeedingDate != nil {
+		query += " FeedingDate = ?,"
+		args = append(args, *input.FeedingDate)
+	} else {
+		query += " FeedingDate = CURDATE(),"
+	}
+	if input.FeedID != nil {
+		query += " AllocatedQuantity = ?,"
+		args = append(args, *input.FeedID)
+	}
 	query = strings.TrimSuffix(query, ",")
 
 	query += " WHERE ScheduleID = ?"

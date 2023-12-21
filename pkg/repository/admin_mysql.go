@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"fmt"
+	"github.com/go-sql-driver/mysql"
 	"github.com/hel7/Atark-backend"
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
@@ -29,12 +30,27 @@ const (
 )
 
 func (r *AdminMysql) CreateUser(user farmsage.User) (int, error) {
+	checkQuery := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE email=? OR username=?", usersTable)
+	var count int
+	err := r.db.Get(&count, checkQuery, user.Email, user.Username)
+	if err != nil {
+		return 0, err
+	}
+
+	if count > 0 {
+		return 0, fmt.Errorf("user with this email or username already exists")
+	}
+
 	hashedPassword := generatePasswordHash(user.Password)
 
-	query := fmt.Sprintf("INSERT INTO %s (username, email, password,role) VALUES (?, ?, ?, ?)", usersTable)
+	query := fmt.Sprintf("INSERT INTO %s (username, email, password, role) VALUES (?, ?, ?, ?)", usersTable)
 
 	result, err := r.db.Exec(query, user.Username, user.Email, hashedPassword, user.Role)
 	if err != nil {
+		mysqlErr, ok := err.(*mysql.MySQLError)
+		if ok && mysqlErr.Number == 1062 {
+			return 0, fmt.Errorf("user with this email or username already exists")
+		}
 		return 0, err
 	}
 
@@ -71,6 +87,7 @@ func (r *AdminMysql) Delete(UserID int) error {
 	_, err := r.db.Exec(query, UserID)
 	return err
 }
+
 func (r *AdminMysql) UpdateUser(UserID int, input farmsage.UpdateUserInput) error {
 	if err := input.Validate(); err != nil {
 		return err
@@ -80,10 +97,33 @@ func (r *AdminMysql) UpdateUser(UserID int, input farmsage.UpdateUserInput) erro
 	args := make([]interface{}, 0)
 
 	if input.Username != nil {
+		checkUsernameQuery := "SELECT COUNT(*) FROM User WHERE Username=? AND UserID <> ?"
+		var usernameCount int
+		err := r.db.Get(&usernameCount, checkUsernameQuery, *input.Username, UserID)
+		if err != nil {
+			return err
+		}
+
+		if usernameCount > 0 {
+			return fmt.Errorf("user with this username already exists")
+		}
+
 		setValues = append(setValues, "Username=?")
 		args = append(args, *input.Username)
 	}
 	if input.Email != nil {
+		// Перевірка, чи існує користувач з такою ж поштою
+		checkEmailQuery := "SELECT COUNT(*) FROM User WHERE Email=? AND UserID <> ?"
+		var emailCount int
+		err := r.db.Get(&emailCount, checkEmailQuery, *input.Email, UserID)
+		if err != nil {
+			return err
+		}
+
+		if emailCount > 0 {
+			return fmt.Errorf("user with this email already exists")
+		}
+
 		setValues = append(setValues, "Email=?")
 		args = append(args, *input.Email)
 	}
@@ -97,16 +137,14 @@ func (r *AdminMysql) UpdateUser(UserID int, input farmsage.UpdateUserInput) erro
 	}
 
 	setQuery := strings.Join(setValues, ", ")
-
 	query := fmt.Sprintf("UPDATE %s SET %s WHERE UserID=?", usersTable, setQuery)
 
 	args = append(args, UserID)
-	logrus.Debugf("updateQuery: %s", query)
-	logrus.Debugf("args: %v", args)
 
 	_, err := r.db.Exec(query, args...)
 	return err
 }
+
 func (r *AdminMysql) BackupData(backupPath string) error {
 	cmd := exec.Command(
 		"docker",

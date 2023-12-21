@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+	"github.com/go-sql-driver/mysql"
 	"github.com/hel7/Atark-backend"
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
@@ -26,6 +27,9 @@ func (r *AnimalsMysql) Create(FarmID int, animal farmsage.Animal) (int, error) {
 	res, err := tx.Exec(createAnimalQuery, animal.AnimalName, animal.Number, animal.DateOfBirth, animal.Sex, animal.Age, animal.MedicalInfo)
 	if err != nil {
 		tx.Rollback()
+		if mysqlErr, ok := err.(*mysql.MySQLError); ok && mysqlErr.Number == 1062 {
+			return 0, fmt.Errorf("duplicate entry for Animal.Number")
+		}
 		return 0, err
 	}
 
@@ -123,12 +127,18 @@ func (r *AnimalsMysql) Update(AnimalID int, input farmsage.UpdateAnimalInput) er
 	}
 
 	setQuery := strings.Join(setValues, ", ")
-	query := fmt.Sprintf("UPDATE %s SET %s WHERE AnimalID=?", animalsTable, setQuery)
+	query := fmt.Sprintf("UPDATE Animal SET %s WHERE AnimalID=?", setQuery)
 
 	args = append(args, AnimalID)
 	logrus.Debugf("updateQuery: %s", query)
 	logrus.Debugf("args: %v", args)
 
 	_, err := r.db.Exec(query, args...)
-	return err
+	if err != nil {
+		if mysqlErr, ok := err.(*mysql.MySQLError); ok && mysqlErr.Number == 1062 {
+			return fmt.Errorf("duplicate entry for Animal.Number")
+		}
+		return err
+	}
+	return nil
 }

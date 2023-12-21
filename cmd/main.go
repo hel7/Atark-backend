@@ -14,14 +14,18 @@ import (
 
 func main() {
 	logrus.SetFormatter(new(logrus.JSONFormatter))
+
+	// Ініціалізація конфігурації
 	if err := initConfig(); err != nil {
 		logrus.Fatalf("error initializing configs: %s", err.Error())
 	}
 
+	// Завантаження змінних середовища з файлу .env
 	if err := godotenv.Load(); err != nil {
 		logrus.Fatalf("Error loading env variables: %s", err.Error())
 	}
 
+	// Ініціалізація підключення до бази даних MySQL
 	db, err := repository.NewMysqlDb(repository.Config{
 		Host:     viper.GetString("db.host"),
 		Port:     viper.GetString("db.port"),
@@ -45,6 +49,7 @@ func main() {
 	services := service.NewService(repos)
 	handler := handlers.NewHandler(services)
 
+	// Ініціалізація сервера і запуск його на певному порту
 	srv := new(farmsage.Server)
 	logrus.Printf("Starting the server on port %s", viper.GetString("server.port"))
 
@@ -53,6 +58,7 @@ func main() {
 	}
 }
 
+// Функція для ініціалізації конфігурації
 func initConfig() error {
 	viper.AddConfigPath("configs")
 	viper.SetConfigName("config")

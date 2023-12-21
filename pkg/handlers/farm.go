@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 )
 
 type UserResponse struct {
@@ -85,11 +86,17 @@ func (h *Handlers) createFarm(c *gin.Context) {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
+
 	createdFarmID, err := h.services.Farms.Create(UserID, input)
 	if err != nil {
+		if strings.Contains(err.Error(), "farm with this name already exists") {
+			newErrorResponse(c, http.StatusBadRequest, "Farm with this name already exists")
+			return
+		}
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
+
 	c.JSON(http.StatusOK, map[string]interface{}{
 		"FarmID": createdFarmID,
 	})
@@ -110,7 +117,12 @@ func (h *Handlers) updateFarm(c *gin.Context) {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
-	if err := h.services.Farms.Update(UserID, id, input); err != nil {
+	err = h.services.Farms.Update(UserID, id, input)
+	if err != nil {
+		if strings.Contains(err.Error(), "farm with this name already exists") {
+			newErrorResponse(c, http.StatusBadRequest, "Farm with this name already exists")
+			return
+		}
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -141,6 +153,7 @@ func (h *Handlers) deleteFarm(c *gin.Context) {
 		Status: "Ok",
 	})
 }
+
 func (h *Handlers) addFeedToFarm(c *gin.Context) {
 	var feed farmsage.Feed
 	if err := c.ShouldBindJSON(&feed); err != nil {
@@ -150,6 +163,10 @@ func (h *Handlers) addFeedToFarm(c *gin.Context) {
 
 	createdFeedID, err := h.services.Feed.Create(feed)
 	if err != nil {
+		if strings.Contains(err.Error(), "Duplicate entry") {
+			newErrorResponse(c, http.StatusConflict, "feed with this name already exists")
+			return
+		}
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -158,7 +175,6 @@ func (h *Handlers) addFeedToFarm(c *gin.Context) {
 		"FeedID": createdFeedID,
 	})
 }
-
 func (h *Handlers) removeFeedFromFarm(c *gin.Context) {
 
 	feedIDStr := c.Param("feedID")
@@ -227,6 +243,7 @@ func (h *Handlers) getAnimalByID(c *gin.Context) {
 func (h *Handlers) addAnimalToFarm(c *gin.Context) {
 	UserID, err := getUserID(c)
 	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -235,11 +252,17 @@ func (h *Handlers) addAnimalToFarm(c *gin.Context) {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
+
 	createdAnimalID, err := h.services.Animals.Create(UserID, input)
 	if err != nil {
+		if strings.Contains(err.Error(), "duplicate entry for Animal.Number") {
+			newErrorResponse(c, http.StatusBadRequest, "Duplicate entry for Animal.Number")
+			return
+		}
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
+
 	c.JSON(http.StatusOK, map[string]interface{}{
 		"AnimalID": createdAnimalID,
 	})
@@ -347,18 +370,6 @@ func (h *Handlers) getFeedsOnFarm(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, feeds)
-}
-
-func (h *Handlers) getAnalytics(c *gin.Context) {
-
-}
-
-func (h *Handlers) getAnalyticsByDate(c *gin.Context) {
-
-}
-
-func (h *Handlers) deleteAdminUser(c *gin.Context) {
-
 }
 
 func (h *Handlers) getUsers(c *gin.Context) {
@@ -475,13 +486,16 @@ func (h *Handlers) updateFeed(c *gin.Context) {
 
 	var input farmsage.UpdateFeedInput
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	err = h.services.Feed.Update(id, input)
-
 	if err != nil {
+		if strings.Contains(err.Error(), "Duplicate entry") {
+			newErrorResponse(c, http.StatusConflict, "feed with this name already exists")
+			return
+		}
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -506,8 +520,11 @@ func (h *Handlers) updateAnimal(c *gin.Context) {
 	}
 
 	err = h.services.Animals.Update(id, input)
-
 	if err != nil {
+		if strings.Contains(err.Error(), "duplicate entry for Animal.Number") {
+			newErrorResponse(c, http.StatusBadRequest, "Duplicate entry for Animal.Number")
+			return
+		}
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -516,6 +533,7 @@ func (h *Handlers) updateAnimal(c *gin.Context) {
 		Status: "Ok",
 	})
 }
+
 func (h *Handlers) backupData(c *gin.Context) {
 	backupPath := "backup.sql"
 
