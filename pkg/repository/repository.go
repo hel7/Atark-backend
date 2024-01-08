@@ -17,6 +17,12 @@ type Animals interface {
 	GetByID(FarmID, AnimalID int) (farmsage.Animal, error)
 	Delete(FarmID, AnimalID int) error
 	Update(AnimalID int, input farmsage.UpdateAnimalInput) error
+	AddActivity(AnimalID int, activity farmsage.Activity) (int, error)
+	GetActivityByAnimalID(AnimalID int) ([]farmsage.Activity, error)
+	AddBiometrics(AnimalID int, biometrics farmsage.Biometrics) (int, error)
+	GetBiometricsByAnimalID(AnimalID int) ([]farmsage.Biometrics, error)
+	DeleteBiometrics(BiometricID int) error
+	DeleteActivity(ActivityID int) error
 }
 
 type Farms interface {
@@ -41,9 +47,6 @@ type FeedingSchedule interface {
 	Update(scheduleID int, input farmsage.UpdateFeedingScheduleInput) error
 }
 
-type Analytics interface {
-}
-
 type Admin interface {
 	GetUserByID(userID int) (farmsage.User, error)
 	CreateUser(user farmsage.User) (int, error)
@@ -62,7 +65,6 @@ type Repository struct {
 	Farms
 	Feed
 	FeedingSchedule
-	Analytics
 	Admin
 }
 

@@ -14,13 +14,13 @@ type Animal struct {
 }
 
 type Activity struct {
-	ActivityID   int    `json:"id"`
-	AnimalID     int    `json:"animal_id"`
-	ActivityType string `json:"activity_type"`
-	StartTime    string `json:"start_time"`
-	EndTime      string `json:"end_time"`
-	Latitude     int    `json:"latitude"`
-	Longitude    int    `json:"longitude"`
+	ActivityID   int    `json:"ActivityID" db:"ActivityID"`
+	AnimalID     int    `json:"AnimalID" db:"AnimalID"`
+	ActivityType string `json:"ActivityType" db:"ActivityType"`
+	StartTime    string `json:"StartTime" db:"StartTime"`
+	EndTime      string `json:"EndTime" db:"EndTime"`
+	Latitude     int    `json:"Latitude" db:"Latitude"`
+	Longitude    int    `json:"Longitude" db:"Longitude"`
 }
 
 type FeedingSchedule struct {
@@ -42,12 +42,12 @@ type Feed struct {
 }
 
 type Biometrics struct {
-	BiometricID   int     `json:"id"`
-	AnimalID      int     `json:"animal_id"`
-	Pulse         int     `json:"pulse"`
-	Temperature   float64 `json:"temperature"`
-	Weight        float64 `json:"weight"`
-	BreathingRate int     `json:"breathing_rate"`
+	BiometricID   int     `json:"BiometricID" db:"BiometricID"`
+	AnimalID      int     `json:"AnimalID" db:"AnimalID"`
+	Pulse         int     `json:"Pulse" db:"Pulse" `
+	Temperature   float64 `json:"Temperature" db:"Temperature"`
+	Weight        float64 `json:"Weight" db:"Weight"`
+	BreathingRate int     `json:"BreathingRate" db:"BreathingRate"`
 }
 
 type Farm struct {
@@ -85,7 +85,7 @@ type UpdateFeedingScheduleInput struct {
 	FeedName          *string `json:"FeedName"`
 	FeedingTime       *string `json:"FeedingTime"`
 	FeedingDate       *string `json:"FeedingDate"`
-	AllocatedQuantity int     `json:"AllocatedQuantity" db:"AllocatedQuantity"`
+	AllocatedQuantity *int    `json:"AllocatedQuantity" db:"AllocatedQuantity"`
 }
 
 func (i UpdateFarmInput) Validate() error {
@@ -109,7 +109,7 @@ func (i UpdateAnimalInput) Validate() error {
 }
 
 func (i UpdateFeedingScheduleInput) Validate() error {
-	if i.ScheduleID == nil && i.AnimalID == nil && i.FeedID == nil {
+	if i.ScheduleID == nil && i.AnimalID == nil && i.FeedID == nil && i.AllocatedQuantity == nil {
 		return errors.New("Update structure has no value")
 	}
 	return nil

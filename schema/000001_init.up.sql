@@ -33,10 +33,10 @@ CREATE TABLE Activity (
                           ActivityID INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
                           AnimalID INT UNSIGNED,
                           ActivityType VARCHAR(255) NOT NULL,
-                          StartTime TIME NOT NULL,
-                          EndTime TIME NOT NULL,
-                          Latitude INT NOT NULL,
-                          Longitude INT NOT NULL,
+                          StartTime DATETIME NOT NULL,
+                          EndTime DATETIME NOT NULL,
+                          Latitude DOUBLE NOT NULL,
+                          Longitude DOUBLE NOT NULL,
                           FOREIGN KEY (AnimalID) REFERENCES Animal(AnimalID) ON DELETE CASCADE
 );
 

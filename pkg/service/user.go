@@ -5,15 +5,15 @@ import (
 	"github.com/hel7/Atark-backend/pkg/repository"
 )
 
-type AdminService struct {
+type AdministratorService struct {
 	repo repository.Admin
 }
 
-func NewAdminService(repo repository.Admin) *AdminService {
-	return &AdminService{repo: repo}
+func NewAdminService(repo repository.Admin) *AdministratorService {
+	return &AdministratorService{repo: repo}
 }
 
-func (s *AdminService) CreateUser(user farmsage.User) (int, error) {
+func (s *AdministratorService) CreateUser(user farmsage.User) (int, error) {
 	if err := user.ValidatePassword(); err != nil {
 		return 0, err
 	}
@@ -23,17 +23,17 @@ func (s *AdminService) CreateUser(user farmsage.User) (int, error) {
 	return s.repo.CreateUser(user)
 }
 
-func (s *AdminService) GetUserByID(userID int) (farmsage.User, error) {
+func (s *AdministratorService) GetUserByID(userID int) (farmsage.User, error) {
 	return s.repo.GetUserByID(userID)
 }
 
-func (s *AdminService) GetAllUsers() ([]farmsage.User, error) {
+func (s *AdministratorService) GetAllUsers() ([]farmsage.User, error) {
 	return s.repo.GetAllUsers()
 }
-func (s *AdminService) Delete(UserID int) error {
+func (s *AdministratorService) Delete(UserID int) error {
 	return s.repo.Delete(UserID)
 }
-func (s *AdminService) UpdateUser(UserID int, input farmsage.UpdateUserInput, user farmsage.User) error {
+func (s *AdministratorService) UpdateUser(UserID int, input farmsage.UpdateUserInput, user farmsage.User) error {
 	if err := input.Validate(); err != nil {
 		return err
 	}
@@ -46,7 +46,7 @@ func (s *AdminService) UpdateUser(UserID int, input farmsage.UpdateUserInput, us
 
 	return s.repo.UpdateUser(UserID, input, user)
 }
-func (s *AdminService) BackupData(backupPath string) error {
+func (s *AdministratorService) BackupData(backupPath string) error {
 	err := s.repo.BackupData(backupPath)
 	if err != nil {
 		return err
@@ -54,7 +54,7 @@ func (s *AdminService) BackupData(backupPath string) error {
 
 	return nil
 }
-func (s *AdminService) RestoreData(backupPath string) error {
+func (s *AdministratorService) RestoreData(backupPath string) error {
 	err := s.repo.RestoreData(backupPath)
 	if err != nil {
 		return err
@@ -62,7 +62,7 @@ func (s *AdminService) RestoreData(backupPath string) error {
 
 	return nil
 }
-func (s *AdminService) ExportData(exportPath string) error {
+func (s *AdministratorService) ExportData(exportPath string) error {
 	err := s.repo.ExportData(exportPath)
 	if err != nil {
 		return err
@@ -70,7 +70,7 @@ func (s *AdminService) ExportData(exportPath string) error {
 
 	return nil
 }
-func (s *AdminService) ImportData(importPath string) error {
+func (s *AdministratorService) ImportData(importPath string) error {
 	err := s.repo.ImportData(importPath)
 	if err != nil {
 		return err

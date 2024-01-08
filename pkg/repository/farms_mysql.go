@@ -9,15 +9,15 @@ import (
 	"strings"
 )
 
-type FarmsSql struct {
+type FarmsMysql struct {
 	db *sqlx.DB
 }
 
-func NewFarmsMysql(db *sqlx.DB) *FarmsSql {
-	return &FarmsSql{db: db}
+func NewFarmsMysql(db *sqlx.DB) *FarmsMysql {
+	return &FarmsMysql{db: db}
 }
 
-func (r *FarmsSql) Create(UserID int, farm farmsage.Farm) (int, error) {
+func (r *FarmsMysql) Create(UserID int, farm farmsage.Farm) (int, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
 		return 0, err
@@ -51,26 +51,26 @@ func (r *FarmsSql) Create(UserID int, farm farmsage.Farm) (int, error) {
 	return int(id), nil
 }
 
-func (r *FarmsSql) GetAll(UserID int) ([]farmsage.Farm, error) {
+func (r *FarmsMysql) GetAll(UserID int) ([]farmsage.Farm, error) {
 	var farms []farmsage.Farm
 	query := fmt.Sprintf("SELECT FarmID,FarmName FROM %s INNER JOIN User ON Farm.UserID = User.UserID WHERE Farm.UserID = ?", farmsTable)
 	err := r.db.Select(&farms, query, UserID)
 	return farms, err
 }
 
-func (r *FarmsSql) GetByID(UserID, FarmID int) (farmsage.Farm, error) {
+func (r *FarmsMysql) GetByID(UserID, FarmID int) (farmsage.Farm, error) {
 	var farm farmsage.Farm
 	query := fmt.Sprintf("SELECT FarmID,FarmName FROM %s INNER JOIN User ON Farm.UserID = User.UserID WHERE Farm.UserID = ? AND Farm.FarmID=?", farmsTable)
 	err := r.db.Get(&farm, query, UserID, FarmID)
 	return farm, err
 }
-func (r *FarmsSql) Delete(UserID, FarmID int) error {
+func (r *FarmsMysql) Delete(UserID, FarmID int) error {
 	query := fmt.Sprintf("DELETE FROM %s WHERE FarmID = ? AND UserID = ? ", farmsTable)
 	_, err := r.db.Exec(query, FarmID, UserID)
 	return err
 }
 
-func (r *FarmsSql) Update(UserID, id int, input farmsage.UpdateFarmInput) error {
+func (r *FarmsMysql) Update(UserID, id int, input farmsage.UpdateFarmInput) error {
 	setValues := make([]string, 0)
 	args := make([]interface{}, 0)
 

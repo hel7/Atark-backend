@@ -44,11 +44,12 @@ func (h *Handlers) registerAdmin(c *gin.Context) {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
-	if err := input.ValidatePassword(); err != nil {
+
+	if err := input.ValidateEmail(); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
-	if err := input.ValidateEmail(); err != nil {
+	if err := input.ValidatePassword(); err != nil {
 		newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}

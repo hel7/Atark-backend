@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"github.com/hel7/Atark-backend"
 	"github.com/jmoiron/sqlx"
 	"strings"
@@ -20,9 +21,21 @@ func (r *FeedScheduleMysql) Create(feedingSchedule farmsage.FeedingSchedule) (in
 		return 0, err
 	}
 
+	getFeedQuery := "SELECT Quantity FROM Feed WHERE FeedID = ?"
+	var quantity int
+	err = tx.Get(&quantity, getFeedQuery, feedingSchedule.FeedID)
+	if err != nil {
+		tx.Rollback()
+		return 0, err
+	}
+
+	if quantity < feedingSchedule.AllocatedQuantity {
+		tx.Rollback()
+		return 0, errors.New("insufficient quantity")
+	}
+
 	query := "INSERT INTO FeedingSchedule (AnimalID, FeedID, FeedingTime, FeedingDate, AllocatedQuantity) VALUES (?, ?, NOW(), CURDATE(), ?)"
 	result, err := tx.Exec(query, feedingSchedule.AnimalID, feedingSchedule.FeedID, feedingSchedule.AllocatedQuantity)
-
 	if err != nil {
 		tx.Rollback()
 		return 0, err
@@ -34,16 +47,7 @@ func (r *FeedScheduleMysql) Create(feedingSchedule farmsage.FeedingSchedule) (in
 		return 0, err
 	}
 
-	getFeedQuery := "SELECT Quantity FROM Feed WHERE FeedID = ?"
-	var quantity int
-	err = tx.Get(&quantity, getFeedQuery, feedingSchedule.FeedID)
-	if err != nil {
-		tx.Rollback()
-		return 0, err
-	}
-
 	quantity -= feedingSchedule.AllocatedQuantity
-
 	updateFeedQuery := "UPDATE Feed SET Quantity = ? WHERE FeedID = ?"
 	_, err = tx.Exec(updateFeedQuery, quantity, feedingSchedule.FeedID)
 	if err != nil {
@@ -80,6 +84,25 @@ func (r *FeedScheduleMysql) Delete(scheduleID int) error {
 }
 
 func (r *FeedScheduleMysql) Update(scheduleID int, input farmsage.UpdateFeedingScheduleInput) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return err
+	}
+	var quantity int
+	if input.FeedID != nil && input.AllocatedQuantity != nil {
+		getFeedQuery := "SELECT Quantity FROM Feed WHERE FeedID = ?"
+
+		err = tx.Get(&quantity, getFeedQuery, *input.FeedID)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+
+	}
+	if quantity < *input.AllocatedQuantity {
+		tx.Rollback()
+		return errors.New("insufficient quantity in feed")
+	}
 	query := "UPDATE FeedingSchedule SET"
 
 	args := make([]interface{}, 0)
@@ -106,15 +129,25 @@ func (r *FeedScheduleMysql) Update(scheduleID int, input farmsage.UpdateFeedingS
 	} else {
 		query += " FeedingDate = CURDATE(),"
 	}
-	if input.FeedID != nil {
+	if input.AllocatedQuantity != nil {
 		query += " AllocatedQuantity = ?,"
-		args = append(args, *input.FeedID)
+		args = append(args, *input.AllocatedQuantity)
 	}
 	query = strings.TrimSuffix(query, ",")
 
 	query += " WHERE ScheduleID = ?"
 	args = append(args, scheduleID)
 
-	_, err := r.db.Exec(query, args...)
-	return err
+	_, err = tx.Exec(query, args...)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err := tx.Commit(); err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return nil
 }

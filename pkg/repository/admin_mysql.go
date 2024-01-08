@@ -3,6 +3,8 @@ package repository
 import (
 	"bytes"
 	"crypto/sha256"
+	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/go-sql-driver/mysql"
 	"github.com/hel7/Atark-backend"
@@ -70,7 +72,7 @@ func (r *AdminMysql) CreateUser(user farmsage.User) (int, error) {
 
 func (r *AdminMysql) GetUserByID(userID int) (farmsage.User, error) {
 	var user farmsage.User
-	query := fmt.Sprintf("SELECT Username, Email, Role FROM %s WHERE UserID=?", usersTable)
+	query := fmt.Sprintf("SELECT UserID, Username, Email, Role FROM %s WHERE UserID=?", usersTable)
 	err := r.db.Get(&user, query, userID)
 	if err != nil {
 		log.Printf("Error fetching user by ID %d: %s", userID, err)
@@ -80,7 +82,7 @@ func (r *AdminMysql) GetUserByID(userID int) (farmsage.User, error) {
 
 func (r *AdminMysql) GetAllUsers() ([]farmsage.User, error) {
 	var users []farmsage.User
-	query := fmt.Sprintf("SELECT Username, Email, Role FROM %s", usersTable)
+	query := fmt.Sprintf("SELECT UserID, Username, Email, Role FROM %s", usersTable)
 	err := r.db.Select(&users, query)
 	if err != nil {
 		log.Printf("Error fetching all users: %s", err)
@@ -95,65 +97,61 @@ func (r *AdminMysql) Delete(UserID int) error {
 }
 
 func (r *AdminMysql) UpdateUser(UserID int, input farmsage.UpdateUserInput, user farmsage.User) error {
-	if err := user.ValidateEmail(); err != nil {
-		return err
-	}
-	if err := user.ValidatePassword(); err != nil {
-		return err
-	}
-	if err := input.Validate(); err != nil {
+	existingUser, err := r.GetUserByID(UserID)
+	if err != nil {
 		return err
 	}
 
-	setValues := make([]string, 0)
-	args := make([]interface{}, 0)
+	if input.Email != nil {
+		checkEmailQuery := "SELECT UserID FROM User WHERE Email=? AND UserID != ?"
+		var otherUserID int
+		err := r.db.Get(&otherUserID, checkEmailQuery, *input.Email, UserID)
+		if err != nil && err != sql.ErrNoRows {
+			return err
+		}
+		if otherUserID != 0 {
+			return errors.New("user with this email already exists")
+		}
+
+		existingUser.Email = *input.Email
+		if err := existingUser.ValidateEmail(); err != nil {
+			return err
+		}
+	}
 
 	if input.Username != nil {
-		checkUsernameQuery := "SELECT COUNT(*) FROM User WHERE Username=? AND UserID <> ?"
-		var usernameCount int
-		err := r.db.Get(&usernameCount, checkUsernameQuery, *input.Username, UserID)
-		if err != nil {
+		checkUsernameQuery := "SELECT UserID FROM User WHERE Username=? AND UserID != ?"
+		var otherUserID int
+		err := r.db.Get(&otherUserID, checkUsernameQuery, *input.Username, UserID)
+		if err != nil && err != sql.ErrNoRows {
 			return err
 		}
-
-		if usernameCount > 0 {
-			return fmt.Errorf("user with this username already exists")
+		if otherUserID != 0 {
+			return errors.New("user with this username already exists")
 		}
 
-		setValues = append(setValues, "Username=?")
-		args = append(args, *input.Username)
+		existingUser.Username = *input.Username
 	}
-	if input.Email != nil {
-		checkEmailQuery := "SELECT COUNT(*) FROM User WHERE Email=? AND UserID <> ?"
-		var emailCount int
-		err := r.db.Get(&emailCount, checkEmailQuery, *input.Email, UserID)
-		if err != nil {
-			return err
-		}
 
-		if emailCount > 0 {
-			return fmt.Errorf("user with this email already exists")
-		}
-
-		setValues = append(setValues, "Email=?")
-		args = append(args, *input.Email)
-	}
 	if input.Password != nil {
-		setValues = append(setValues, "Password=?")
-		args = append(args, *input.Password)
+		existingUser.Password = *input.Password
+		if err := existingUser.ValidatePassword(); err != nil {
+			return err
+		}
+		existingUser.Password = generatePasswordHash(existingUser.Password)
 	}
+
 	if input.Role != nil {
-		setValues = append(setValues, "Role=?")
-		args = append(args, *input.Role)
+		existingUser.Role = *input.Role
 	}
 
-	setQuery := strings.Join(setValues, ", ")
-	query := fmt.Sprintf("UPDATE %s SET %s WHERE UserID=?", usersTable, setQuery)
+	query := fmt.Sprintf("UPDATE %s SET Username=?, Email=?, Password=?, Role=? WHERE UserID=?", usersTable)
+	_, err = r.db.Exec(query, existingUser.Username, existingUser.Email, existingUser.Password, existingUser.Role, UserID)
+	if err != nil {
+		return err
+	}
 
-	args = append(args, UserID)
-
-	_, err := r.db.Exec(query, args...)
-	return err
+	return nil
 }
 
 func (r *AdminMysql) BackupData(backupPath string) error {
@@ -303,6 +301,7 @@ func (r *AdminMysql) ExportData(exportPath string) error {
 
 	return nil
 }
+
 func (r *AdminMysql) ImportData(importPath string) error {
 	file, err := xlsx.OpenFile(importPath)
 	if err != nil {
@@ -323,7 +322,7 @@ func (r *AdminMysql) ImportData(importPath string) error {
 			columns[i] = cell.String()
 		}
 
-		query := fmt.Sprintf("INSERT INTO %s (%s) VALUES ", tableName, strings.Join(columns, ","))
+		query := fmt.Sprintf("INSERT IGNORE INTO %s (%s) VALUES ", tableName, strings.Join(columns, ",")) // or use INSERT ... ON DUPLICATE KEY UPDATE
 
 		var valueStrings []string
 		var valueArgs []interface{}

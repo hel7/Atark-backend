@@ -45,6 +45,14 @@ func (h *Handlers) InitRoutes() *gin.Engine {
 			farms.PUT("/animals/:animalID", h.updateAnimal)
 			farms.DELETE("/animals/:animalID", h.removeAnimalFromFarm)
 
+			farms.POST("/animals/:animalID/activity", h.addActivity)
+			farms.GET("/animals/:animalID/activity", h.getActivityByAnimalID)
+			farms.DELETE("/animals/:animalID/activity/:activityID", h.deleteActivityByAnimalID)
+
+			farms.POST("/animals/:animalID/biometrics", h.addBiometrics)
+			farms.GET("/animals/:animalID/biometrics", h.getBiometricsByAnimalID)
+			farms.DELETE("/animals/:animalID/biometrics/:biometricID", h.deleteBiometricsByAnimalID)
+
 			farms.POST("/animals/:animalID/feeds/:feedID/", h.addAnimalFeedSchedule)
 			farms.DELETE("/animals/:animalID/schedule/:scheduleID", h.deleteFeedingSchedule)
 			farms.PUT("/animals/:animalID/schedule/:scheduleID/", h.updateAnimalFeedSchedule)

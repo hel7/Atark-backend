@@ -34,3 +34,27 @@ func (s *AnimalService) Update(AnimalID int, input farmsage.UpdateAnimalInput) e
 
 	return s.repo.Update(AnimalID, input)
 }
+
+func (s *AnimalService) AddActivity(AnimalID int, activity farmsage.Activity) (int, error) {
+	return s.repo.AddActivity(AnimalID, activity)
+}
+
+func (s *AnimalService) GetActivityByAnimalID(AnimalID int) ([]farmsage.Activity, error) {
+	return s.repo.GetActivityByAnimalID(AnimalID)
+}
+
+func (s *AnimalService) AddBiometrics(AnimalID int, biometrics farmsage.Biometrics) (int, error) {
+	return s.repo.AddBiometrics(AnimalID, biometrics)
+}
+
+func (s *AnimalService) GetBiometricsByAnimalID(AnimalID int) ([]farmsage.Biometrics, error) {
+	return s.repo.GetBiometricsByAnimalID(AnimalID)
+}
+
+func (s *AnimalService) DeleteBiometrics(BiometricID int) error {
+	return s.repo.DeleteBiometrics(BiometricID)
+}
+
+func (s *AnimalService) DeleteActivity(ActivityID int) error {
+	return s.repo.DeleteActivity(ActivityID)
+}

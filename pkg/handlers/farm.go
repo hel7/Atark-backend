@@ -10,6 +10,11 @@ import (
 	"strings"
 )
 
+type FarmResponse struct {
+	FarmID int    `json:"FarmID"`
+	Name   string `json:"FarmName"`
+}
+
 func (h *Handlers) getUserFarms(c *gin.Context) {
 	UserID, err := getUserID(c)
 	if err != nil {
@@ -21,7 +26,16 @@ func (h *Handlers) getUserFarms(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"farms": farms})
+	var simplifiedFarms []FarmResponse
+	for _, farm := range farms {
+		simplifiedFarm := FarmResponse{
+			FarmID: farm.FarmID,
+			Name:   farm.FarmName,
+		}
+		simplifiedFarms = append(simplifiedFarms, simplifiedFarm)
+	}
+
+	c.JSON(http.StatusOK, gin.H{"farms": simplifiedFarms})
 }
 
 func (h *Handlers) getFarmByID(c *gin.Context) {
@@ -39,8 +53,11 @@ func (h *Handlers) getFarmByID(c *gin.Context) {
 		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
-
-	c.JSON(http.StatusOK, farm)
+	response := FarmResponse{
+		FarmID: farm.FarmID,
+		Name:   farm.FarmName,
+	}
+	c.JSON(http.StatusOK, response)
 }
 
 func (h *Handlers) createFarm(c *gin.Context) {
@@ -278,11 +295,16 @@ func (h *Handlers) updateAnimalFeedSchedule(c *gin.Context) {
 		return
 	}
 	err = h.services.FeedingSchedule.Update(scheduleID, input)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
 
 	c.JSON(http.StatusOK, statusResponse{
 		Status: "Ok",
 	})
 }
+
 func (h *Handlers) getAnimalFeedSchedule(c *gin.Context) {
 	animalIDStr := c.Param("animalID")
 	animalID, err := strconv.Atoi(animalIDStr)
@@ -545,4 +567,114 @@ func (h *Handlers) importData(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Data imported successfully"})
+}
+func (h *Handlers) addActivity(c *gin.Context) {
+	var activity farmsage.Activity
+	if err := c.ShouldBindJSON(&activity); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "Invalid input data")
+		return
+	}
+
+	createdActivityID, err := h.services.Animals.AddActivity(activity.AnimalID, activity)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"ActivityID": createdActivityID})
+}
+
+func (h *Handlers) getActivityByAnimalID(c *gin.Context) {
+	animalIDStr := c.Param("animalID")
+	animalID, err := strconv.Atoi(animalIDStr)
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "Invalid animal ID")
+		return
+	}
+
+	activities, err := h.services.Animals.GetActivityByAnimalID(animalID)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"activities": activities})
+}
+
+func (h *Handlers) addBiometrics(c *gin.Context) {
+	var biometrics farmsage.Biometrics
+	if err := c.ShouldBindJSON(&biometrics); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "Invalid input data")
+		return
+	}
+
+	animalIDStr := c.Param("animalID")
+	animalID, err := strconv.Atoi(animalIDStr)
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "Invalid animal ID")
+		return
+	}
+
+	createdBiometricID, err := h.services.Animals.AddBiometrics(animalID, biometrics)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"BiometricID": createdBiometricID})
+}
+
+func (h *Handlers) getBiometricsByAnimalID(c *gin.Context) {
+	animalIDStr := c.Param("animalID")
+	animalID, err := strconv.Atoi(animalIDStr)
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "Invalid animal ID")
+		return
+	}
+
+	biometrics, err := h.services.Animals.GetBiometricsByAnimalID(animalID)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"biometrics": biometrics})
+}
+
+func (h *Handlers) deleteBiometricsByAnimalID(c *gin.Context) {
+	biometricIDStr := c.Param("biometricID")
+	biometricID, err := strconv.Atoi(biometricIDStr)
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "Invalid biometricID")
+		return
+	}
+
+	err = h.services.Animals.DeleteBiometrics(biometricID)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, statusResponse{
+		Status: "Ok",
+	})
+}
+
+func (h *Handlers) deleteActivityByAnimalID(c *gin.Context) {
+	activityIDStr := c.Param("activityID")
+	activityID, err := strconv.Atoi(activityIDStr)
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "Invalid activityID")
+		return
+	}
+
+	err = h.services.Animals.DeleteActivity(activityID)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, statusResponse{
+		Status: "Ok",
+	})
 }

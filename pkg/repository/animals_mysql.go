@@ -7,6 +7,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
 	"strings"
+	"time"
 )
 
 type AnimalsMysql struct {
@@ -23,8 +24,14 @@ func (r *AnimalsMysql) Create(FarmID int, animal farmsage.Animal) (int, error) {
 		return 0, err
 	}
 
+	dateOfBirth, err := time.Parse("2006-01-02", animal.DateOfBirth)
+	if err != nil {
+		return 0, err
+	}
+	age := CalculateAgeFromDateOfBirth(dateOfBirth)
+
 	createAnimalQuery := "INSERT INTO Animal (AnimalName, Number, DateOfBirth, Sex, Age, MedicalInfo) VALUES (?, ?, ?, ?, ?, ?)"
-	res, err := tx.Exec(createAnimalQuery, animal.AnimalName, animal.Number, animal.DateOfBirth, animal.Sex, animal.Age, animal.MedicalInfo)
+	res, err := tx.Exec(createAnimalQuery, animal.AnimalName, animal.Number, animal.DateOfBirth, animal.Sex, age, animal.MedicalInfo)
 	if err != nil {
 		tx.Rollback()
 		if mysqlErr, ok := err.(*mysql.MySQLError); ok && mysqlErr.Number == 1062 {
@@ -140,5 +147,82 @@ func (r *AnimalsMysql) Update(AnimalID int, input farmsage.UpdateAnimalInput) er
 		}
 		return err
 	}
+
+	if input.DateOfBirth != nil {
+		dateOfBirth, err := time.Parse("2006-01-02", *input.DateOfBirth)
+		if err != nil {
+			return err
+		}
+		age := CalculateAgeFromDateOfBirth(dateOfBirth)
+
+		_, err = r.db.Exec("UPDATE Animal SET Age=? WHERE AnimalID=?", age, AnimalID)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
+}
+func CalculateAgeFromDateOfBirth(dateOfBirth time.Time) int {
+	currentTime := time.Now()
+	years := currentTime.Year() - dateOfBirth.Year()
+
+	if currentTime.Month() < dateOfBirth.Month() || (currentTime.Month() == dateOfBirth.Month() && currentTime.Day() < dateOfBirth.Day()) {
+		years--
+	}
+
+	return years
+}
+func (r *AnimalsMysql) AddActivity(AnimalID int, activity farmsage.Activity) (int, error) {
+	query := `INSERT INTO Activity (AnimalID, ActivityType, StartTime, EndTime, Latitude, Longitude) VALUES (?, ?, ?, ?, ?, ?)`
+	res, err := r.db.Exec(query, AnimalID, activity.ActivityType, activity.StartTime, activity.EndTime, activity.Latitude, activity.Longitude)
+	if err != nil {
+		return 0, err
+	}
+
+	activityID, err := res.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+
+	return int(activityID), nil
+}
+
+func (r *AnimalsMysql) GetActivityByAnimalID(AnimalID int) ([]farmsage.Activity, error) {
+	var activities []farmsage.Activity
+	query := `SELECT * FROM Activity WHERE AnimalID = ?`
+	err := r.db.Select(&activities, query, AnimalID)
+	return activities, err
+}
+
+func (r *AnimalsMysql) AddBiometrics(AnimalID int, biometrics farmsage.Biometrics) (int, error) {
+	query := `INSERT INTO Biometrics (AnimalID, Pulse, Temperature, Weight, BreathingRate) VALUES (?, ?, ?, ?, ?)`
+	res, err := r.db.Exec(query, AnimalID, biometrics.Pulse, biometrics.Temperature, biometrics.Weight, biometrics.BreathingRate)
+	if err != nil {
+		return 0, err
+	}
+
+	biometricID, err := res.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+
+	return int(biometricID), nil
+}
+
+func (r *AnimalsMysql) GetBiometricsByAnimalID(AnimalID int) ([]farmsage.Biometrics, error) {
+	var biometrics []farmsage.Biometrics
+	query := `SELECT * FROM Biometrics WHERE AnimalID = ?`
+	err := r.db.Select(&biometrics, query, AnimalID)
+	return biometrics, err
+}
+
+func (r *AnimalsMysql) DeleteBiometrics(BiometricID int) error {
+	_, err := r.db.Exec("DELETE FROM Biometrics WHERE BiometricID = ?", BiometricID)
+	return err
+}
+
+func (r *AnimalsMysql) DeleteActivity(ActivityID int) error {
+	_, err := r.db.Exec("DELETE FROM Activity WHERE ActivityID = ?", ActivityID)
+	return err
 }
